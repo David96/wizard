@@ -117,8 +117,8 @@ class Wizard:
         winner = self._get_trick_winner()
         self.players[winner].tricks += 1
         await self.room.send_message('%s wins the trick.' % winner)
+        self.current_player = -1
         if len(self.players[winner].hand) == 0:
-            self.current_player = -1
             await self.finish_round()
         await self.room.fire_event('', Event(self.state_event, True, True))
         await self.room.fire_event('', Event(self.player_event, False, True))
@@ -168,7 +168,7 @@ class Wizard:
             for card in sample:
                 card['owner'] = player.name
                 self.stack.remove(card)
-            player.hand = sample
+            player.hand = sorted(sample, key=self._cmp_to_key(self._cmp_cards))
 
         # Choose a trump card
         if len(self.stack) > 0:
@@ -266,3 +266,37 @@ class Wizard:
         colors = ['red', 'blue', 'green', 'yellow']
         return colors[color]
 
+    def stc(self, color):
+        colors = ['red', 'blue', 'green', 'yellow']
+        return colors.index(color)
+
+    def _cmp_cards(self, carda, cardb):
+        if carda == cardb:
+            return 0
+        if carda['type'] == TYPE_WIZARD or cardb['type'] == TYPE_FOOL:
+            return 1
+        if carda['type'] == TYPE_FOOL or cardb['type'] == TYPE_WIZARD:
+            return -1
+        if carda['color'] == cardb['color']:
+            return 1 if carda['number'] > cardb['number'] else -1
+        if self.trump and carda['color'] == self.trump['color']:
+            return 1
+        return 1 if self.stc(carda['color']) > self.stc(cardb['color']) else -1
+
+    def _cmp_to_key(self, mycmp):
+        class K(object):
+            def __init__(self, obj, *args):
+                self.obj = obj
+            def __lt__(self, other):
+                return mycmp(self.obj, other.obj) < 0
+            def __gt__(self, other):
+                return mycmp(self.obj, other.obj) > 0
+            def __eq__(self, other):
+                return mycmp(self.obj, other.obj) == 0
+            def __le__(self, other):
+                return mycmp(self.obj, other.obj) <= 0
+            def __ge__(self, other):
+                return mycmp(self.obj, other.obj) >= 0
+            def __ne__(self, other):
+                return mycmp(self.obj, other.obj) != 0
+        return K
