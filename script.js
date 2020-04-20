@@ -65,15 +65,12 @@ function onCardClicked(event) {
     }
 }
 
-function createCard(card, listener=true) {
+function createCard(card, hand=true) {
     var cardnode = document.createElement('button');
     cardnode.setAttribute('data-type', card.type);
     if (card.type == 'number') {
         cardnode.setAttribute('data-color', card.color);
         cardnode.setAttribute('data-number', card.number);
-    }
-    if (listener) {
-        cardnode.addEventListener('click', onCardClicked);
     }
     var text;
     switch (card.type) {
@@ -89,6 +86,12 @@ function createCard(card, listener=true) {
             break
     }
     cardnode.appendChild(document.createTextNode(text));
+    if (hand) {
+        cardnode.addEventListener('click', onCardClicked);
+    } else if (card.owner) {
+        cardnode.appendChild(document.createElement('br'));
+        cardnode.appendChild(document.createTextNode(card.owner));
+    }
     cardnode.classList.add("card");
     return cardnode;
 }
@@ -104,7 +107,7 @@ function renderState(state) {
         table.appendChild(trump);
     }
     state.table.forEach((card) => {
-        table.appendChild(createCard(card), false);
+        table.appendChild(createCard(card, false));
     });
     state.hand.forEach((card) => {
         hand.appendChild(createCard(card));
