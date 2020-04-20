@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<head>
+    <title>Wizard</title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+
+<body>
+<div class='game'>
+    <div class='main'>
+        <form id='join' action='#'>
+            <input type='text' name='name' placeholder='Name' />
+            <input type='submit' value='Join' />
+        </form>
+        <form id='announce' class='hidden' action='#'>
+            <input type='text' name='count' placeholder='Count' />
+            <input type='submit' value='Announce' />
+        </form>
+        <form id='choose_trump' class='hidden' action='#'>
+            <select id='color' name='color'>
+                <option value='red'>Red</option>
+                <option value='yellow'>Yellow</option>
+                <option value='green'>Green</option>
+                <option value='blue'>Blue</option>
+            </select>
+            <input type='submit' value='Choose' />
+        </form>
+        <div id='table'></div>
+        <div id='hand'></div>
+    </div>
+    <div class='controls right'>
+        <div class='users'>
+            <h3>Users</h3>
+            <ul id='userlist'>
+            </ul>
+        </div>
+        <div class='messages'>
+            <h3>Messages</h3>
+            <ul id='messagelist'>
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+<script src='script.js'></script>
+</html>
