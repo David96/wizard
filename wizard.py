@@ -86,6 +86,8 @@ class Wizard:
             raise Exception('You dumb motherfucker are not supposed to choose the trump color!')
         self.trump = {'type': TYPE_CARD, 'color': data['color'], 'number': 0}
         self.choosing_trump = None
+        for player in self.players.values():
+            player.hand = self._sort_cards(player.hand)
         del self.ACTIONS['choose_trump']
         await self.room.fire_event('', Event(self.state_event, True, True))
         await self.room.fire_event('', Event(self.player_event, False, True))
@@ -160,6 +162,17 @@ class Wizard:
             self.room.send_message('Game is over!')
             return
 
+        # Choose a trump card
+        self.trump = None
+        if len(self.stack) > 0:
+            trump_card = random.sample(self.stack, 1)[0]
+            if trump_card['type'] == TYPE_WIZARD:
+                prev_player = (self.current_player - 1) % self._active_players()
+                self.choosing_trump = self._sorted_players()[prev_player].name
+                self.ACTIONS['choose_trump'] = self.choose_trump
+            else:
+                self.trump = trump_card
+
         # Hand out cards to players
         for player in self.players.values():
             player.announcement = -1
@@ -168,20 +181,7 @@ class Wizard:
             for card in sample:
                 card['owner'] = player.name
                 self.stack.remove(card)
-            player.hand = sorted(sample, key=self._cmp_to_key(self._cmp_cards))
-
-        # Choose a trump card
-        if len(self.stack) > 0:
-            trump_card = random.sample(self.stack, 1)[0]
-            if trump_card['type'] == TYPE_WIZARD:
-                prev_player = (self.current_player - 1) % self._active_players()
-                self.choosing_trump = self._sorted_players()[prev_player].name
-                self.ACTIONS['choose_trump'] = self.choose_trump
-                self.trump = None
-            else:
-                self.trump = trump_card
-        else:
-            self.trump = None
+            player.hand = self._sort_cards(sample)
 
         self.announcing = True
 
@@ -270,33 +270,26 @@ class Wizard:
         colors = ['red', 'blue', 'green', 'yellow']
         return colors.index(color)
 
-    def _cmp_cards(self, carda, cardb):
-        if carda == cardb:
-            return 0
-        if carda['type'] == TYPE_WIZARD or cardb['type'] == TYPE_FOOL:
-            return 1
-        if carda['type'] == TYPE_FOOL or cardb['type'] == TYPE_WIZARD:
-            return -1
-        if carda['color'] == cardb['color']:
-            return 1 if carda['number'] > cardb['number'] else -1
-        if self.trump and carda['color'] == self.trump['color']:
-            return 1
-        return 1 if self.stc(carda['color']) > self.stc(cardb['color']) else -1
+    def _get_cards_of_type(self, cards, t):
+        return [card for card in cards if card['type'] == t]
 
-    def _cmp_to_key(self, mycmp):
-        class K(object):
-            def __init__(self, obj, *args):
-                self.obj = obj
-            def __lt__(self, other):
-                return mycmp(self.obj, other.obj) < 0
-            def __gt__(self, other):
-                return mycmp(self.obj, other.obj) > 0
-            def __eq__(self, other):
-                return mycmp(self.obj, other.obj) == 0
-            def __le__(self, other):
-                return mycmp(self.obj, other.obj) <= 0
-            def __ge__(self, other):
-                return mycmp(self.obj, other.obj) >= 0
-            def __ne__(self, other):
-                return mycmp(self.obj, other.obj) != 0
-        return K
+    def _get_cards_of_color(self, cards, c):
+        return [card for card in cards if 'color' in card and card['color'] == c]
+
+    def _sort_cards(self, cards):
+        fools = self._get_cards_of_type(cards, TYPE_FOOL)
+        colors = [
+            sorted(self._get_cards_of_color(cards, 'red'), key=lambda c:c['number']),
+            sorted(self._get_cards_of_color(cards, 'blue'), key=lambda c:c['number']),
+            sorted(self._get_cards_of_color(cards, 'green'), key=lambda c:c['number']),
+            sorted(self._get_cards_of_color(cards, 'yellow'), key=lambda c:c['number']),
+        ]
+        wizards = self._get_cards_of_type(cards, TYPE_WIZARD)
+        sorted_cards = fools
+        for i, c in enumerate(colors):
+            if not (self.trump and 'color' in self.trump and self.cts(i) == self.trump['color']):
+                sorted_cards += c
+        if self.trump and 'color' in self.trump:
+            sorted_cards += colors[self.stc(self.trump['color'])]
+        sorted_cards += wizards
+        return sorted_cards
