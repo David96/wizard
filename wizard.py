@@ -164,7 +164,7 @@ class Wizard:
 
         # Choose a trump card
         self.trump = None
-        if len(self.stack) > 0:
+        if self.round * len(self.players) < len(self.stack):
             trump_card = random.sample(self.stack, 1)[0]
             self.stack.remove(trump_card)
             if trump_card['type'] == TYPE_WIZARD:
