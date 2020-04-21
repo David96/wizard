@@ -189,8 +189,9 @@ class Wizard:
         if not self.announcing or self.choosing_trump:
             raise Exception('You shouldn\'t be doing this…')
         if name != self._sorted_players()[self.current_player].name:
-            print("%s, %s, %d" % (name, self._sorted_players(), self.current_player))
             raise Exception('It\'s not your turn, bitch')
+        if not isinstance(data['announcement'], int):
+            raise Exception('Maybe try an actual number?')
         if data['announcement'] > self.round:
             raise Exception('U dumb af or what?!')
         next_player = (self.current_player + 1) % self._active_players()
