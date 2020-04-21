@@ -166,6 +166,7 @@ class Wizard:
         self.trump = None
         if len(self.stack) > 0:
             trump_card = random.sample(self.stack, 1)[0]
+            self.stack.remove(trump_card)
             if trump_card['type'] == TYPE_WIZARD:
                 prev_player = (self.current_player - 1) % self._active_players()
                 self.choosing_trump = self._sorted_players()[prev_player].name
