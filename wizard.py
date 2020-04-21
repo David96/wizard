@@ -202,6 +202,7 @@ class Wizard:
             if self._sum() == self.round:
                 raise Exception('Nope. Wrong number ¯\\_(ツ)_/¯')
             self.announcing = False
+            await self.room.send_message('%d of %d tricks announced.' % (self._sum(), self.round))
             events.append(Event(self.state_event, True, True))
         self.current_player = next_player
         for event in events:
