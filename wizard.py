@@ -152,11 +152,20 @@ class Wizard:
 
         # Create stack of all cards
         self.stack.clear()
+        _id = 0
         for color in range(4):
             for i in range(1, 14):
-                self.stack.append({'type': TYPE_CARD, 'color': self.cts(color), 'number': i})
-            self.stack.append({'type': TYPE_WIZARD})
-            self.stack.append({'type': TYPE_FOOL})
+                self.stack.append({
+                    'type': TYPE_CARD,
+                    'color': self.cts(color),
+                    'number': i,
+                    'id': _id
+                })
+                _id += 1
+            self.stack.append({'type': TYPE_WIZARD, 'id': _id})
+            _id += 1
+            self.stack.append({'type': TYPE_FOOL, 'id': _id})
+            _id += 1
 
         if self.round * len(self.players) > len(self.stack):
             self.room.send_message('Game is over!')
