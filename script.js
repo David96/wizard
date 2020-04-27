@@ -101,6 +101,21 @@ function renderState(state) {
     var hand = document.getElementById('hand');
     table.innerHTML = '';
     hand.innerHTML = '';
+    if (state.game_over) {
+        var winner = document.getElementsByClassName('winner')[0];
+        winner.innerHTML = '';
+        var text;
+        if (state.winners.length > 1) {
+            text = state.winners.join(', ');
+            text += ' win the game!';
+        } else {
+            text = state.winners[0] + ' wins the game!';
+        }
+        winner.appendChild(document.createTextNode(text));
+        document.getElementsByClassName('pyro-container')[0].classList.remove('hidden');
+    } else {
+        document.getElementsByClassName('pyro-container')[0].classList.add('hidden');
+    }
     if (state.trump) {
         var trump = createCard(state.trump, false);
         trump.classList.add('trump');

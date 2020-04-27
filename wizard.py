@@ -39,6 +39,8 @@ class Wizard:
         self.round = 0
         self.current_player = -1
         self.first_player = 0
+        self.game_over = False
+        self.winners = []
 
     def add_player(self, name):
         if name in self.players:
@@ -59,7 +61,9 @@ class Wizard:
             'hand': player.hand,
             'trump': self.trump,
             'announcing': self.announcing,
-            'choosing_trump': self.choosing_trump
+            'choosing_trump': self.choosing_trump,
+            'game_over': self.game_over,
+            'winners': [winner.name for winner in self.winners],
         })
 
     async def player_event(self, _):
@@ -77,6 +81,7 @@ class Wizard:
 
     # Actions
     async def start_game(self, _, __):
+        self.init(self.room)
         self.new_round()
         await self.room.fire_event('', Event(self.state_event, True, True))
         await self.room.fire_event('', Event(self.player_event, False, True))
@@ -96,7 +101,6 @@ class Wizard:
         if self.announcing or self.choosing_trump:
             raise Exception('God damn it, you aren\'t allowed to play a card right now!')
         if self.current_player < 0 or name != self._sorted_players()[self.current_player].name:
-            print("%s, %s, %d" % (name, self._sorted_players(), self.current_player))
             raise Exception('It\'s not your turn, bitch')
         player = self.players[name]
         card = self._get_card(player, data)
@@ -167,8 +171,17 @@ class Wizard:
             self.stack.append({'type': TYPE_FOOL, 'id': _id})
             _id += 1
 
+        # if the game is over, figure out the winner(s)
         if self.round * len(self.players) > len(self.stack):
-            self.room.send_message('Game is over!')
+            self.game_over = True
+            players = self._sorted_players()
+            best_players = [players[0]]
+            for player in players[1:]:
+                if player.score == best_players[0].score:
+                    best_players.append(player)
+                elif player.score > best_players[0].score:
+                    best_players = [player]
+            self.winners = best_players
             return
 
         # Choose a trump card
@@ -291,10 +304,10 @@ class Wizard:
     def _sort_cards(self, cards):
         fools = self._get_cards_of_type(cards, TYPE_FOOL)
         colors = [
-            sorted(self._get_cards_of_color(cards, 'red'), key=lambda c:c['number']),
-            sorted(self._get_cards_of_color(cards, 'blue'), key=lambda c:c['number']),
-            sorted(self._get_cards_of_color(cards, 'green'), key=lambda c:c['number']),
-            sorted(self._get_cards_of_color(cards, 'yellow'), key=lambda c:c['number']),
+            sorted(self._get_cards_of_color(cards, 'red'), key=lambda c: c['number']),
+            sorted(self._get_cards_of_color(cards, 'blue'), key=lambda c: c['number']),
+            sorted(self._get_cards_of_color(cards, 'green'), key=lambda c: c['number']),
+            sorted(self._get_cards_of_color(cards, 'yellow'), key=lambda c: c['number']),
         ]
         wizards = self._get_cards_of_type(cards, TYPE_WIZARD)
         sorted_cards = fools
