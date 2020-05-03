@@ -1,6 +1,8 @@
 
 var ws, username,
-    initialized = false;
+    initialized = false,
+    game_over = false,
+    players = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Content loaded');
@@ -96,23 +98,53 @@ function createCard(card, hand=true) {
     return cardnode;
 }
 
+function tableEntry(name, score, place) {
+    var row = document.createElement('tr');
+    var tplace = document.createElement('td');
+    var tname = document.createElement('td');
+    var tscore = document.createElement('td');
+    tplace.appendChild(document.createTextNode(place));
+    tname.appendChild(document.createTextNode(name));
+    tscore.appendChild(document.createTextNode(score));
+    row.appendChild(tplace);
+    row.appendChild(tname);
+    row.appendChild(tscore);
+    return row;
+}
+
+function renderGameOver() {
+    var winner = document.getElementsByClassName('winner')[0];
+    var score_board = document.getElementsByClassName('score-board')[0];
+    score_board.innerHTML = "<tr><th>Place</th><th>Name</th><th>Score</th></tr>";
+    var sorted = players.sort((a, b) => b.score - a.score);
+    console.log('game_over: ' + sorted);
+    var winners = [sorted[0]];
+    for (var i = 0; i < sorted.length; ++i) {
+        if (i > 0 && sorted[i].score == winners[0].score) {
+            winners.push(sorted[i]);
+        }
+        score_board.appendChild(tableEntry(sorted[i].name, sorted[i].score, i + 1));
+    }
+    winner.innerHTML = '';
+    var text;
+    if (winners.length > 1) {
+        text = winners.join(', ');
+        text += ' win the game!';
+    } else {
+        text = winners[0].name + ' wins the game!';
+    }
+    winner.appendChild(document.createTextNode(text));
+    document.getElementsByClassName('pyro-container')[0].classList.remove('hidden');
+}
+
 function renderState(state) {
     var table = document.getElementById('table');
     var hand = document.getElementById('hand');
     table.innerHTML = '';
     hand.innerHTML = '';
     if (state.game_over) {
-        var winner = document.getElementsByClassName('winner')[0];
-        winner.innerHTML = '';
-        var text;
-        if (state.winners.length > 1) {
-            text = state.winners.join(', ');
-            text += ' win the game!';
-        } else {
-            text = state.winners[0] + ' wins the game!';
-        }
-        winner.appendChild(document.createTextNode(text));
-        document.getElementsByClassName('pyro-container')[0].classList.remove('hidden');
+        game_over = true;
+        renderGameOver(state);
     } else {
         document.getElementsByClassName('pyro-container')[0].classList.add('hidden');
     }
@@ -153,6 +185,10 @@ function addMessage(msg, is_error) {
 
 function createUserList(users) {
     console.log('creating user list');
+    players = users;
+    if (game_over) {
+        renderGameOver();
+    }
     var list = document.getElementById('userlist');
     list.innerText = '';
     users.forEach((user) => {
