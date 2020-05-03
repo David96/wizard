@@ -36,7 +36,7 @@ class Wizard:
         self.choosing_trump = None
         self.announcing = False
         self.table = []
-        self.round = 29
+        self.round = 0
         self.current_player = -1
         self.first_player = 0
         self.game_over = False
@@ -290,7 +290,7 @@ class Wizard:
 
 
     def _sorted_players(self):
-        return sorted(self.players.values(), key=lambda p: p.name)
+        return sorted(self.players.values(), key=lambda p: p.name.lower())
 
     def cts(self, color):
         colors = ['red', 'blue', 'green', 'yellow']
