@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function (event) {
         var data = new FormData(form);
         username = data.get('name');
-        ws = new WebSocket("ws://127.0.0.1:6790/");
+        ws = new WebSocket("ws://127.0.0.1:6791/");
         ws.onopen = onOpen;
         ws.onmessage = onMessage;
 
