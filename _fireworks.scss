@@ -80,6 +80,7 @@ $box-shadow2: ();
     background: linear-gradient(270deg, #00c5ff, #f9ff00, #ff0000);
     background-size: 600% 600%;
     background-clip: text;
+    -webkit-background-clip: text;
     color: transparent;
     @include animation(10s font-bg ease infinite);
 }
