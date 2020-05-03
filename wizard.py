@@ -21,36 +21,41 @@ class Player:
 
 class Wizard:
 
-    def __init__(self):
+    def __init__(self, room):
         self.ACTIONS = {
             'play_card': self.play_card,
             'announce': self.announce,
-            'start_game': self.start_game
         }
         self.players = {}
+        self.room = room
+        self.reset()
+
+    def reset(self):
         self.stack = []
         self.trump = None
         self.choosing_trump = None
         self.announcing = False
-
-    def init(self, room):
         self.table = []
-        self.room = room
-        self.round = 0
+        self.round = 29
         self.current_player = -1
         self.first_player = 0
         self.game_over = False
         self.winners = []
 
-    def add_player(self, name):
+    async def add_player(self, name):
         if name in self.players:
             self.players[name].active = True
-        else:
+            await self.room.fire_event(name, Event(self.state_event, True, False))
+        elif not self.room.started or self.game_over:
             self.players[name] = Player(name)
-        return [Event(self.player_event, False, True), Event(self.state_event, True, False)]
+        else:
+            return False
+        await self.room.fire_event('', Event(self.player_event, False, True))
+        return True
 
-    def remove_player(self, name):
+    async def remove_player(self, name):
         self.players[name].active = False
+        await self.room.fire_event('', Event(self.player_event, False, True))
 
     # Events
     async def state_event(self, name):
@@ -76,12 +81,12 @@ class Wizard:
                 'tricks': player.tricks,
                 'turn': self.current_player > -1 and
                                 player == self._sorted_players()[self.current_player]
-            } for player in self._sorted_players()]
+            } for player in self._sorted_players() if player.active]
         })
 
     # Actions
-    async def start_game(self, _, __):
-        self.init(self.room)
+    async def start_game(self):
+        self.reset()
         self.new_round()
         await self.room.fire_event('', Event(self.state_event, True, True))
         await self.room.fire_event('', Event(self.player_event, False, True))
