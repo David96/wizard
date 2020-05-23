@@ -2,7 +2,8 @@
 var ws, username,
     initialized = false,
     game_over = false,
-    players = null;
+    players = null,
+    round = 0;
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Content loaded');
@@ -140,11 +141,12 @@ function renderGameOver() {
 function renderState(state) {
     var table = document.getElementById('table');
     var hand = document.getElementById('hand');
+    round = state.round;
     table.innerHTML = '';
     hand.innerHTML = '';
     if (state.game_over) {
         game_over = true;
-        renderGameOver(state);
+        renderGameOver();
     } else {
         document.getElementsByClassName('pyro-container')[0].classList.add('hidden');
     }
@@ -191,17 +193,22 @@ function createUserList(users) {
     }
     var list = document.getElementById('userlist');
     list.innerText = '';
+    var total = 0;
     users.forEach((user) => {
         var li = document.createElement('li');
         var text = user.name;
         if (user.turn) {
             li.classList.add('turn');
         }
-        text += " (" + user.tricks + " von " + user.announcement + ")";
+        if (user.announcement != -1) {
+            text += " (" + user.tricks + " von " + user.announcement + ")";
+            total += user.announcement;
+        }
         text += " (" + user.score + ")";
         li.appendChild(document.createTextNode(text));
         list.appendChild(li);
     });
+    document.getElementById('trick-count').innerHTML = total + " von " + round;
 }
 
 function onOpen() {

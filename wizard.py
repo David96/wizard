@@ -64,6 +64,7 @@ class Wizard:
             'type': 'state',
             'table': self.table,
             'hand': player.hand,
+            'round': self.round,
             'trump': self.trump,
             'announcing': self.announcing,
             'choosing_trump': self.choosing_trump,
