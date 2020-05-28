@@ -276,7 +276,7 @@ class Wizard:
     def _get_trick_winner(self):
         first_card = self._get_first_card()
         if not first_card:
-            return self.table[-1]['owner']
+            return self.table[0]['owner']
         best_card = first_card
         for card in self.table:
             if card['type'] == TYPE_WIZARD:
