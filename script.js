@@ -122,7 +122,7 @@ function renderGameOver() {
     var winners = [sorted[0]];
     for (var i = 0; i < sorted.length; ++i) {
         if (i > 0 && sorted[i].score == winners[0].score) {
-            winners.push(sorted[i]);
+            winners.push(sorted[i].name);
         }
         score_board.appendChild(tableEntry(sorted[i].name, sorted[i].score, i + 1));
     }
@@ -132,7 +132,7 @@ function renderGameOver() {
         text = winners.join(', ');
         text += ' win the game!';
     } else {
-        text = winners[0].name + ' wins the game!';
+        text = winners[0] + ' wins the game!';
     }
     winner.appendChild(document.createTextNode(text));
     document.getElementsByClassName('pyro-container')[0].classList.remove('hidden');
