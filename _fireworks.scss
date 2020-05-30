@@ -90,6 +90,12 @@ $box-shadow2: ();
         opacity: 0;
     }
 }
+
+.center {
+    display: block;
+    margin: 0 auto;
+}
+
 .score-board {
     animation: fly-in 3s ease-out;
     font-size: 2em;

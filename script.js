@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ws = new WebSocket("ws://127.0.0.1:6791/");
         ws.onopen = onOpen;
         ws.onmessage = onMessage;
+        document.getElementsByClassName('pyro-container')[0].classList.remove('hidden');
 
         event.preventDefault();
     });
@@ -44,6 +45,15 @@ function onMessage(event) {
         case 'player':
             console.log('Got user message');
             createUserList(data.players);
+            break;
+        case 'rights':
+            if (data.status == 'creator') {
+                var start_game = document.getElementById('start_game');
+                start_game.addEventListener('click', () => {
+                    ws.send(JSON.stringify({action: 'start_game'}));
+                });
+                start_game.classList.remove('hidden');
+            }
             break;
         case 'message':
             console.log('Got message: ' + data.msg)
@@ -113,8 +123,7 @@ function tableEntry(name, score, place) {
     return row;
 }
 
-function renderGameOver() {
-    var winner = document.getElementsByClassName('winner')[0];
+function renderScoreBoard() {
     var score_board = document.getElementsByClassName('score-board')[0];
     score_board.innerHTML = "<tr><th>Place</th><th>Name</th><th>Score</th></tr>";
     var sorted = players.sort((a, b) => b.score - a.score);
@@ -126,7 +135,12 @@ function renderGameOver() {
         }
         score_board.appendChild(tableEntry(sorted[i].name, sorted[i].score, i + 1));
     }
+}
+
+function renderGameOver() {
+    var winner = document.getElementsByClassName('winner')[0];
     winner.innerHTML = '';
+    renderScoreBoard();
     var text;
     if (winners.length > 1) {
         text = winners.join(', ');
@@ -135,10 +149,14 @@ function renderGameOver() {
         text = winners[0] + ' wins the game!';
     }
     winner.appendChild(document.createTextNode(text));
+    document.getElementById('gameover').classList.add('pyro');
     document.getElementsByClassName('pyro-container')[0].classList.remove('hidden');
 }
 
 function renderState(state) {
+    if (state.round == 1) {
+        document.getElementsByClassName('pyro-container')[0].classList.add('hidden');
+    }
     var table = document.getElementById('table');
     var hand = document.getElementById('hand');
     round = state.round;
@@ -190,6 +208,8 @@ function createUserList(users) {
     players = users;
     if (game_over) {
         renderGameOver();
+    } else if (!document.getElementsByClassName('pyro-container')[0].classList.contains('hidden')) {
+        renderScoreBoard();
     }
     var list = document.getElementById('userlist');
     list.innerText = '';
