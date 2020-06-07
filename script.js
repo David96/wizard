@@ -135,12 +135,13 @@ function renderScoreBoard() {
         }
         score_board.appendChild(tableEntry(sorted[i].name, sorted[i].score, i + 1));
     }
+    return winners;
 }
 
 function renderGameOver() {
     var winner = document.getElementsByClassName('winner')[0];
     winner.innerHTML = '';
-    renderScoreBoard();
+    var winners = renderScoreBoard();
     var text;
     if (winners.length > 1) {
         text = winners.join(', ');
