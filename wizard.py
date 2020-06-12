@@ -1,3 +1,5 @@
+# pylint: disable=C0116,W0201
+
 import asyncio
 import time
 import random
