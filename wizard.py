@@ -31,7 +31,7 @@ class Wizard:
         self.reset()
 
     def reset(self):
-        for player in self.players:
+        for player in self.players.values():
             player.score = 0
         self.stack = []
         self.trump = None
