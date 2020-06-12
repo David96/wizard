@@ -300,7 +300,7 @@ class Wizard:
 
 
     def _sorted_players(self):
-        return sorted(self.players.values(), key=lambda p: p.name.lower())
+        return sorted(self._active_players(), key=lambda p: p.name.lower())
 
     def cts(self, color):
         colors = ['red', 'blue', 'green', 'yellow']
