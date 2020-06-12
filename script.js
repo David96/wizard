@@ -163,8 +163,8 @@ function renderState(state) {
     round = state.round;
     table.innerHTML = '';
     hand.innerHTML = '';
-    if (state.game_over) {
-        game_over = true;
+    game_over = state.game_over;
+    if (game_over) {
         renderGameOver();
     } else {
         document.getElementsByClassName('pyro-container')[0].classList.add('hidden');

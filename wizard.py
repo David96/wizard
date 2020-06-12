@@ -33,6 +33,9 @@ class Wizard:
     def reset(self):
         for player in self.players.values():
             player.score = 0
+            # remove idle players
+            if not player.active:
+                del self.players[player.name]
         self.stack = []
         self.trump = None
         self.choosing_trump = None
