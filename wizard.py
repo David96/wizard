@@ -67,8 +67,8 @@ class Wizard:
     # Events
     async def state_event(self, name):
         player = self.players[name]
-        table = self.table if self.round > 1 \
-                           else [player.card for player in self._active_players() if player.name != name]
+        table = self.table if self.round > 1 or not self.announcing \
+                           else [player.hand[0] for player in self._active_players() if player.name != name]
         return json.dumps({
             'type': 'state',
             'table': table,
@@ -235,13 +235,23 @@ class Wizard:
         next_player = (self.current_player + 1) % len(self._active_players())
         self.players[name].announcement = data['announcement']
         events = [Event(self.player_event, False, True)]
+        # This has to be before the eventual call to new_trick, so it doesn't interfere with it
+        self.current_player = next_player
         if next_player == self.first_player:
             if self._sum() == self.round:
                 raise Exception('Nope. Wrong number ¯\\_(ツ)_/¯')
             self.announcing = False
             await self.room.send_message('%d of %d tricks announced.' % (self._sum(), self.round))
+            # In round one, basically the whole trick has to be simulated,
+            # as noone can actually play a card
+            if self.round == 1:
+                # Based on the assumption, that in the first round, the first player is also
+                # the first entry in sorted_players, otherwise the order is wrong
+                self.table = [player.hand.pop() for player in self._sorted_players()]
+                await self.finish_trick()
+                await asyncio.sleep(3)
+                await self.new_trick()
             events.append(Event(self.state_event, True, True))
-        self.current_player = next_player
         for event in events:
             await self.room.fire_event('', event)
 
