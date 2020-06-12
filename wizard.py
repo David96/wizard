@@ -33,7 +33,7 @@ class Wizard:
         self.reset()
 
     def reset(self):
-        for player in self.players.values():
+        for player in list(self.players.values()):
             player.score = 0
             # remove idle players
             if not player.active:
