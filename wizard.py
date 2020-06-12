@@ -67,10 +67,12 @@ class Wizard:
     # Events
     async def state_event(self, name):
         player = self.players[name]
+        table = self.table if self.round > 1 \
+                           else [player.card for player in self._active_players() if player.name != name]
         return json.dumps({
             'type': 'state',
-            'table': self.table,
-            'hand': player.hand,
+            'table': table,
+            'hand': player.hand if self.round > 1 else [],
             'round': self.round,
             'trump': self.trump,
             'announcing': self.announcing,
@@ -123,7 +125,7 @@ class Wizard:
             raise Exception('Sadly, you are not allowed to play this card. Idiot.')
         player.hand.remove(card)
         self.table.append(card)
-        self.current_player = (self.current_player + 1) % self._active_players()
+        self.current_player = (self.current_player + 1) % len(self._active_players())
 
         if self.current_player == self.first_player:
             await self.finish_trick()
@@ -164,7 +166,7 @@ class Wizard:
     def new_round(self):
         self.round += 1
         self.table.clear()
-        self.current_player = (self.round - 1) % self._active_players()
+        self.current_player = (self.round - 1) % len(self._active_players())
         self.first_player = self.current_player
 
         # Create stack of all cards
@@ -185,7 +187,7 @@ class Wizard:
             _id += 1
 
         # if the game is over, figure out the winner(s)
-        if self.round * len(self.players) > len(self.stack):
+        if self.round * len(self._active_players()) > len(self.stack):
             self.game_over = True
             players = self._sorted_players()
             best_players = [players[0]]
@@ -203,7 +205,7 @@ class Wizard:
             trump_card = random.sample(self.stack, 1)[0]
             self.stack.remove(trump_card)
             if trump_card['type'] == TYPE_WIZARD:
-                prev_player = (self.current_player - 1) % self._active_players()
+                prev_player = (self.current_player - 1) % len(self._active_players())
                 self.choosing_trump = self._sorted_players()[prev_player].name
                 self.ACTIONS['choose_trump'] = self.choose_trump
             else:
@@ -230,7 +232,7 @@ class Wizard:
             raise Exception('Maybe try an actual number?')
         if data['announcement'] > self.round:
             raise Exception('U dumb af or what?!')
-        next_player = (self.current_player + 1) % self._active_players()
+        next_player = (self.current_player + 1) % len(self._active_players())
         self.players[name].announcement = data['announcement']
         events = [Event(self.player_event, False, True)]
         if next_player == self.first_player:
@@ -245,7 +247,7 @@ class Wizard:
 
     # Helpers
     def _active_players(self):
-        return len([player for player in self.players.values() if player.active])
+        return [player for player in self.players.values() if player.active]
 
     def _get_card(self, player, data):
         for card in player.hand:
