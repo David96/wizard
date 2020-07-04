@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
         ws = new WebSocket("ws://127.0.0.1:6791/");
         ws.onopen = onOpen;
         ws.onmessage = onMessage;
-        document.getElementsByClassName('pyro-container')[0].classList.remove('hidden');
 
         event.preventDefault();
     });
@@ -35,11 +34,11 @@ document.addEventListener('DOMContentLoaded', function() {
 function onMessage(event) {
     data = JSON.parse(event.data);
     switch (data.type) {
+        case 'joined':
+            initGame();
+            break;
         case 'state':
             console.log('Got state message');
-            if (!initialized) {
-                initGame();
-            }
             renderState(data);
             break;
         case 'player':
@@ -155,9 +154,6 @@ function renderGameOver() {
 }
 
 function renderState(state) {
-    if (state.round == 1) {
-        document.getElementsByClassName('pyro-container')[0].classList.add('hidden');
-    }
     var table = document.getElementById('table');
     var hand = document.getElementById('hand');
     round = state.round;
@@ -241,4 +237,5 @@ function initGame() {
     initialized = true;
     var form = document.getElementById('join');
     form.className = 'join hidden';
+    document.getElementsByClassName('pyro-container')[0].classList.remove('hidden');
 }

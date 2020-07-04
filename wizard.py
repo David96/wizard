@@ -48,6 +48,14 @@ class Wizard:
         self.first_player = 0
         self.game_over = False
         self.winners = []
+        self.state_dirty = self.players_dirty = False
+
+    async def send_dirty(self):
+        if self.state_dirty:
+            await self.room.fire_event('', Event(self.state_event, True, True))
+        if self.players_dirty:
+            await self.room.fire_event('', Event(self.player_event, False, True))
+        self.state_dirty = self.players_dirty = False
 
     async def add_player(self, name):
         if name in self.players:
@@ -57,15 +65,15 @@ class Wizard:
             self.players[name] = Player(name)
         else:
             return False
-        await self.room.fire_event('', Event(self.player_event, False, True))
+        self.players_dirty = True
         return True
 
-    async def remove_player(self, name):
+    def remove_player(self, name):
         self.players[name].active = False
-        await self.room.fire_event('', Event(self.player_event, False, True))
+        self.players_dirty = True
 
     # Events
-    async def state_event(self, name):
+    def state_event(self, name):
         player = self.players[name]
         table = self.table if self.round > 1 or not self.announcing \
                            else [player.hand[0] for player in self._active_players() if player.name != name]
@@ -81,7 +89,7 @@ class Wizard:
             'winners': [winner.name for winner in self.winners],
         })
 
-    async def player_event(self, _):
+    def player_event(self, _):
         return json.dumps({
             'type': 'player',
             'players': [{
@@ -95,13 +103,12 @@ class Wizard:
         })
 
     # Actions
-    async def start_game(self):
+    def start_game(self):
         self.reset()
         self.new_round()
-        await self.room.fire_event('', Event(self.state_event, True, True))
-        await self.room.fire_event('', Event(self.player_event, False, True))
+        self.players_dirty = self.state_dirty = True
 
-    async def choose_trump(self, name, data):
+    def choose_trump(self, name, data):
         if name != self.choosing_trump:
             raise Exception('You dumb motherfucker are not supposed to choose the trump color!')
         self.trump = {'type': TYPE_CARD, 'color': data['color'], 'number': 0}
@@ -109,10 +116,9 @@ class Wizard:
         for player in self.players.values():
             player.hand = self._sort_cards(player.hand)
         del self.ACTIONS['choose_trump']
-        await self.room.fire_event('', Event(self.state_event, True, True))
-        await self.room.fire_event('', Event(self.player_event, False, True))
+        self.players_dirty = self.state_dirty = True
 
-    async def play_card(self, name, data):
+    def play_card(self, name, data):
         if self.announcing or self.choosing_trump:
             raise Exception('God damn it, you aren\'t allowed to play a card right now!')
         if self.current_player < 0 or name != self._sorted_players()[self.current_player].name:
@@ -128,31 +134,29 @@ class Wizard:
         self.current_player = (self.current_player + 1) % len(self._active_players())
 
         if self.current_player == self.first_player:
-            await self.finish_trick()
-            await asyncio.sleep(3)
-            await self.new_trick()
-        await self.room.fire_event('', Event(self.state_event, True, True))
-        await self.room.fire_event('', Event(self.player_event, False, True))
+            self.finish_trick()
+            self.room.call_later(3, self.new_trick)
+        self.players_dirty = self.state_dirty = True
 
-    async def finish_trick(self):
+    def finish_trick(self):
         winner = self._get_trick_winner()
         self.players[winner].tricks += 1
-        await self.room.send_message('%s wins the trick.' % winner)
+        self.room.send_message('%s wins the trick.' % winner)
         self.current_player = -1
         if len(self.players[winner].hand) == 0:
-            await self.finish_round()
-        await self.room.fire_event('', Event(self.state_event, True, True))
-        await self.room.fire_event('', Event(self.player_event, False, True))
+            self.finish_round()
+        self.players_dirty = self.state_dirty = True
 
-    async def new_trick(self):
+    def new_trick(self):
         winner = self._get_trick_winner()
         self.current_player = self._sorted_players().index(self.players[winner])
         self.first_player = self.current_player
         self.table.clear()
         if len(self.players[winner].hand) == 0:
             self.new_round()
+        self.state_dirty = self.players_dirty = True
 
-    async def finish_round(self):
+    def finish_round(self):
         for player in self.players.values():
             if player.active:
                 diff = abs(player.announcement - player.tricks)
@@ -161,7 +165,7 @@ class Wizard:
                 else:
                     score = -(diff * 10)
                 player.score += score
-                await self.room.send_message('%s makes %d points.' % (player.name, score))
+                self.room.send_message('%s makes %d points.' % (player.name, score))
 
     def new_round(self):
         self.round += 1
@@ -223,7 +227,7 @@ class Wizard:
 
         self.announcing = True
 
-    async def announce(self, name, data):
+    def announce(self, name, data):
         if not self.announcing or self.choosing_trump:
             raise Exception('You shouldn\'t be doing this…')
         if name != self._sorted_players()[self.current_player].name:
@@ -234,26 +238,23 @@ class Wizard:
             raise Exception('U dumb af or what?!')
         next_player = (self.current_player + 1) % len(self._active_players())
         self.players[name].announcement = data['announcement']
-        events = [Event(self.player_event, False, True)]
-        # This has to be before the eventual call to new_trick, so it doesn't interfere with it
-        self.current_player = next_player
+        self.players_dirty = True
         if next_player == self.first_player:
             if self._sum() == self.round:
                 raise Exception('Nope. Wrong number ¯\\_(ツ)_/¯')
             self.announcing = False
-            await self.room.send_message('%d of %d tricks announced.' % (self._sum(), self.round))
+            self.state_dirty = True
+            self.room.send_message('%d of %d tricks announced.' % (self._sum(), self.round))
             # In round one, basically the whole trick has to be simulated,
             # as noone can actually play a card
             if self.round == 1:
                 # Based on the assumption, that in the first round, the first player is also
                 # the first entry in sorted_players, otherwise the order is wrong
                 self.table = [player.hand.pop() for player in self._sorted_players()]
-                await self.finish_trick()
-                await asyncio.sleep(3)
-                await self.new_trick()
-            events.append(Event(self.state_event, True, True))
-        for event in events:
-            await self.room.fire_event('', event)
+                self.finish_trick()
+                self.room.call_later(3, self.new_trick)
+                return
+        self.current_player = next_player
 
     # Helpers
     def _active_players(self):
