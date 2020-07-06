@@ -60,7 +60,7 @@ class Wizard:
     async def add_player(self, name):
         if name in self.players:
             self.players[name].active = True
-            await self.room.fire_event(name, Event(self.state_event, True, False))
+            self.state_dirty = True
         elif not self.room.started or self.game_over:
             self.players[name] = Player(name)
         else:
