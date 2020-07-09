@@ -129,7 +129,7 @@ function renderScoreBoard() {
     console.log('game_over: ' + sorted);
     var winners = [sorted[0].name];
     for (var i = 0; i < sorted.length; ++i) {
-        if (i > 0 && sorted[i].score == winners[0].score) {
+        if (i > 0 && sorted[i].score == sorted[0].score) {
             winners.push(sorted[i].name);
         }
         score_board.appendChild(tableEntry(sorted[i].name, sorted[i].score, i + 1));
