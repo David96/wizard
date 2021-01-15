@@ -49,6 +49,9 @@ class Wizard:
         self.game_over = False
         self.winners = []
         self.state_dirty = self.players_dirty = False
+        self.colors = ['red', 'blue', 'green', 'yellow']
+        if len(self.players) > 6:
+            self.colors.append('orange')
 
     async def send_dirty(self):
         if self.state_dirty:
@@ -63,6 +66,8 @@ class Wizard:
             self.state_dirty = True
         elif not self.room.started or self.game_over:
             self.players[name] = Player(name)
+            if len(self.players) == 7:
+                self.colors.append('orange')
         else:
             return False
         self.players_dirty = True
@@ -176,7 +181,7 @@ class Wizard:
         # Create stack of all cards
         self.stack.clear()
         _id = 0
-        for color in range(4):
+        for color in range(len(self.colors)):
             for i in range(1, 14):
                 self.stack.append({
                     'type': TYPE_CARD,
@@ -314,12 +319,10 @@ class Wizard:
         return sorted(self._active_players(), key=lambda p: p.name.lower())
 
     def cts(self, color):
-        colors = ['red', 'blue', 'green', 'yellow']
-        return colors[color]
+        return self.colors[color]
 
     def stc(self, color):
-        colors = ['red', 'blue', 'green', 'yellow']
-        return colors.index(color)
+        return self.colors.index(color)
 
     def _get_cards_of_type(self, cards, t):
         return [card for card in cards if card['type'] == t]
@@ -330,10 +333,8 @@ class Wizard:
     def _sort_cards(self, cards):
         fools = self._get_cards_of_type(cards, TYPE_FOOL)
         colors = [
-            sorted(self._get_cards_of_color(cards, 'red'), key=lambda c: c['number']),
-            sorted(self._get_cards_of_color(cards, 'blue'), key=lambda c: c['number']),
-            sorted(self._get_cards_of_color(cards, 'green'), key=lambda c: c['number']),
-            sorted(self._get_cards_of_color(cards, 'yellow'), key=lambda c: c['number']),
+            sorted(self._get_cards_of_color(cards, color), key=lambda c: c['number']) \
+                for color in self.colors
         ]
         wizards = self._get_cards_of_type(cards, TYPE_WIZARD)
         sorted_cards = fools
