@@ -62,6 +62,22 @@ function onMessage(event) {
             console.log('Got error: ' + data.msg)
             addMessage(data.msg, true);
             break
+        case 'management':
+            manage(data);
+            break;
+    }
+}
+
+function manage(data) {
+    var waiting_for = data.waiting_for;
+    if (waiting_for.length > 0) {
+        document.getElementsByClassName('waiting')[0].classList.remove('hidden');
+        var waiting_list = document.getElementById('waiting-list');
+        waiting_list.innerHTML = "Waiting for: ";
+        var names = waiting_for.join(', ');
+        waiting_list.appendChild(document.createTextNode(names));
+    } else {
+        document.getElementsByClassName('waiting')[0].classList.add('hidden');
     }
 }
 
