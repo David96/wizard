@@ -52,6 +52,8 @@ function onMessage(event) {
                     ws.send(JSON.stringify({action: 'start_game'}));
                 });
                 start_game.classList.remove('hidden');
+                var kickem = document.getElementById('kick');
+                kickem.classList.remove('hidden');
             }
             break;
         case 'message':
@@ -70,12 +72,23 @@ function onMessage(event) {
 
 function manage(data) {
     var waiting_for = data.waiting_for;
+    var kickem = document.getElementById('kick');
+    // This removes all added event listeners - don't want to keep track of the dynamically created listeners and JS
+    // doesn't allow for an easier way…
+    var kickemClone = kickem.cloneNode(true);
+    kickem.parentNode.replaceChild(kickemClone, kickem);
+    kickem = kickemClone;
     if (waiting_for.length > 0) {
         document.getElementsByClassName('waiting')[0].classList.remove('hidden');
         var waiting_list = document.getElementById('waiting-list');
         waiting_list.innerHTML = "Waiting for: ";
         var names = waiting_for.join(', ');
         waiting_list.appendChild(document.createTextNode(names));
+        kickem.addEventListener('click', () => {
+            waiting_for.forEach((name) => {
+                ws.send(JSON.stringify({action: 'kick', user: name}));
+            });
+        });
     } else {
         document.getElementsByClassName('waiting')[0].classList.add('hidden');
     }
