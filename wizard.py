@@ -122,7 +122,8 @@ class Wizard:
         if self.announcing or self.choosing_trump:
             raise Exception('God damn it, you aren\'t allowed to play a card right now!')
         if self.current_player < 0 or name != self._sorted_players()[self.current_player].name:
-            raise Exception('It\'s not your turn, bitch')
+            return
+            #raise Exception('It\'s not your turn, bitch')
         player = self.players[name]
         card = self._get_card(player, data)
         if not card:
@@ -135,7 +136,7 @@ class Wizard:
 
         if self.current_player == self.first_player:
             self.finish_trick()
-            self.room.call_later(3, self.new_trick)
+            self.room.call_later(0.1, self.new_trick)
         self.players_dirty = self.state_dirty = True
 
     def finish_trick(self):
@@ -251,7 +252,7 @@ class Wizard:
                 # the first entry in sorted_players, otherwise the order is wrong
                 self.table = [player.hand.pop() for player in self._sorted_players()]
                 self.finish_trick()
-                self.room.call_later(3, self.new_trick)
+                self.room.call_later(0.1, self.new_trick)
                 return
         self.current_player = next_player
 
