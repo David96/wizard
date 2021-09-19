@@ -11,6 +11,15 @@ TYPE_CARD = 'number'
 TYPE_WIZARD = 'wizard'
 TYPE_FOOL = 'fool'
 
+insults = {"play_card_at_wrong_time":
+        ["God damn it, you aren't allowed to play a card right now!",
+        "Jesus, can't you at least have the decency to wait?", "If I were a pig, I'd have clicked that too.",
+        "Man, why do I always get those annoying impatient players smelling of rotten eggs?"],
+    "not_your_turn":
+        ["It's not your turn, bitch.", "Stop clicking on card's when you're not supposed to, you idiot!"],
+    "too_much_announced":
+        ["U dumb af or what?!"]}
+
 class Player:
 
     def __init__(self, name):
@@ -120,9 +129,9 @@ class Wizard:
 
     def play_card(self, name, data):
         if self.announcing or self.choosing_trump:
-            raise Exception('God damn it, you aren\'t allowed to play a card right now!')
+            raise Exception(random.choice(insults["play_card_at_wrong_time"]))
         if self.current_player < 0 or name != self._sorted_players()[self.current_player].name:
-            raise Exception('It\'s not your turn, bitch')
+            raise Exception(random.choice(insults["not_your_turn"]))
         player = self.players[name]
         card = self._get_card(player, data)
         if not card:
@@ -234,7 +243,7 @@ class Wizard:
         if not isinstance(data['announcement'], int):
             raise Exception('Maybe try an actual number?')
         if data['announcement'] > self.round:
-            raise Exception('U dumb af or what?!')
+            raise Exception(random.choice(insults["too_much_announced"]))
         next_player = (self.current_player + 1) % len(self.players)
         self.players[name].announcement = data['announcement']
         self.players_dirty = True
