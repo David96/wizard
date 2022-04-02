@@ -40,7 +40,8 @@ class GameScreen extends React.Component<GameScreenProps> {
   render() {
     document.title = "Wizard";
     let curPlayer = this.props.players.find((p) => p.turn)
-    let myTurn = curPlayer && curPlayer.name == username;
+    let myTurn = (!this.props.game_state.choosing_trump && curPlayer && curPlayer.name == username)
+              || this.props.game_state.choosing_trump == username;
     if (myTurn) {
         document.title = "Wizard - It's your turn!";
     }

@@ -111,7 +111,7 @@ class Wizard:
     def choose_trump(self, name, data):
         if name != self.choosing_trump:
             raise Exception('You dumb motherfucker are not supposed to choose the trump color!')
-        self.trump = {'type': TYPE_CARD, 'color': data['color'], 'number': 0}
+        self.trump = {'type': TYPE_WIZARD, 'color': data['color']}
         self.choosing_trump = None
         for player in self.players.values():
             player.hand = self._sort_cards(player.hand)

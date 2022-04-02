@@ -38,6 +38,11 @@ export function CardUI(props : CardUIProps) {
   switch (card.type) {
     case CardType.WIZARD:
       text = 'Z';
+      // This might happen if someone choses a trump color, the wizard's color is then used to
+      // indicate that
+      if (card.color) {
+        color = card.color;
+      }
       break;
     case CardType.FOOL:
       text = 'N';
