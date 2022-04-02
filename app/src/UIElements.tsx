@@ -65,7 +65,7 @@ export function TableUI(props : any) {
   );
   return (
     <div id='table'>
-      <CardUI card={props.trump} trump={true} />
+    {props.trump && <CardUI card={props.trump} trump={true} />}
       {cards}
     </div>
   );
