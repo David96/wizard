@@ -18,7 +18,7 @@ interface GameState {
   round : number;
   trump : Card;
   announcing : boolean;
-  choosing_trump : boolean;
+  choosing_trump : string;
   game_over : boolean;
   winners : string[];
 }
@@ -39,11 +39,11 @@ class GameScreen extends React.Component<GameScreenProps> {
   }
   render() {
     document.title = "Wizard";
-    this.props.players.forEach((player) => {
-      if (player.name == username && player.turn) {
+    let curPlayer = this.props.players.find((p) => p.turn)
+    let myTurn = curPlayer && curPlayer.name == username;
+    if (myTurn) {
         document.title = "Wizard - It's your turn!";
-      }
-    });
+    }
     return [
         <div className='main'>
           {this.props.waiting_for && this.props.waiting_for.length > 0 &&
@@ -54,8 +54,8 @@ class GameScreen extends React.Component<GameScreenProps> {
                   onClick={() => this.kick(this.props.waiting_for)}>Kick em</button>}
               </div>
           }
-          {this.props.game_state.announcing && <AnnounceUI />}
-          {this.props.game_state.choosing_trump && <ChooseTrumpUI />}
+          {this.props.game_state.announcing && myTurn && <AnnounceUI />}
+          {this.props.game_state.choosing_trump == username && <ChooseTrumpUI />}
           <TableUI trump={this.props.game_state.trump} cards={this.props.game_state.table} />
           <HandUI cards={this.props.game_state.hand} />
         </div>,

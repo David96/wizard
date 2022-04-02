@@ -28,7 +28,6 @@ export interface Card {
 
 export interface CardUIProps {
   card : Card;
-  trump : Boolean;
   withOwner? : Boolean;
   onClick? : React.MouseEventHandler;
 }
@@ -38,10 +37,10 @@ export function CardUI(props : CardUIProps) {
   let text, color;
   switch (card.type) {
     case CardType.WIZARD:
-      text = 'Zauberer';
+      text = 'Z';
       break;
     case CardType.FOOL:
-      text = 'Narr';
+      text = 'N';
       break;
     case CardType.NUMBER:
       text = card.number;
@@ -51,22 +50,22 @@ export function CardUI(props : CardUIProps) {
       alert('David screwed up lol');
   }
   return (
-    <button className={'card ' + color + (props.trump ? ' trump' : '')}
+    <button className={'card ' + color}
             onClick={props.onClick}>
       { text }
-      { card.owner && props.withOwner && <br /> }
-      { card.owner && props.withOwner && card.owner }
+      { card.owner && props.withOwner && <br />}
+      { card.owner && props.withOwner && <span className='owner'>{card.owner}</span> }
     </button>
   );
 }
 
 export function TableUI(props : any) {
   let cards = props.cards.map((card : any) =>
-    <CardUI card={card} withOwner={true} trump={false} />
+    <CardUI card={card} withOwner={true} />
   );
   return (
     <div id='table'>
-    {props.trump && <CardUI card={props.trump} trump={true} />}
+    <div className="trump">{props.trump && <CardUI card={props.trump} />}</div>
       {cards}
     </div>
   );
@@ -78,7 +77,7 @@ export class HandUI extends React.Component<any, any> {
   }
   render() {
     let cards = this.props.cards.map((card : any) =>
-      <CardUI card={card} withOwner={false} trump={false} onClick={() => this.onClick(card)}/>
+      <CardUI card={card} withOwner={false} onClick={() => this.onClick(card)}/>
     );
     return (
       <div id='hand'>
@@ -185,7 +184,7 @@ export class ChooseTrumpUI extends React.Component<{}, {value: string}> {
 
   render() {
     return (
-        <form id='choose_trump' onSubmit={this.handleChoose.bind(this)}>
+        <form className='choose_trump' onSubmit={this.handleChoose.bind(this)}>
           <select id='color' name='color' value={this.state.value}
                 onChange={this.handleChange.bind(this)}>
             <option value='red'>Red</option>
@@ -217,7 +216,7 @@ export class AnnounceUI extends React.Component<{}, {value: string}> {
         <input type='text' onChange={this.handleChange.bind(this)}
                          value={this.state.value}
                          placeholder='Announcement' />
-        <input type='submit' value='Announce' />
+        <input type='submit' value='Go' />
       </form>
     );
   }

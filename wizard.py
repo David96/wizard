@@ -1,5 +1,7 @@
 # pylint: disable=C0116,W0201
 
+import asyncio
+import time
 import random
 import json
 
@@ -82,7 +84,7 @@ class Wizard:
             'round': self.round,
             'trump': self.trump,
             'announcing': self.announcing and not self.choosing_trump,
-            'choosing_trump': self.choosing_trump == name,
+            'choosing_trump': self.choosing_trump,
             'game_over': self.game_over,
             'winners': [winner.name for winner in self.winners],
         })
