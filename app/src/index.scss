@@ -11,9 +11,33 @@ body, html {
     padding: 0;
 }
 
+@media (orientation: landscape) {
+    .main, .controls, .game {
+        height: 100%;
+    }
+
+    .main {
+        width: 80%;
+    }
+
+    .controls {
+        width: 20%;
+        height: 100%;
+    }
+
+    .messages {
+        height: 63%;
+    }
+}
+
+@media (orientation: portrait) {
+    .main {
+        width: 100%;
+    }
+}
+
 .main, .controls, .game {
     box-sizing: border-box;
-    height: 100%;
 }
 
 .main, .controls {
@@ -21,7 +45,6 @@ body, html {
 }
 
 .main {
-    width: 80%;
     padding: 20px;
 
     .announce, .choose_trump {
@@ -71,20 +94,12 @@ body, html {
         font-size: 5em;
         border: 1px solid black;
         margin-right: 5px;
+        margin-bottom: 20px;
 
         .owner {
             font-size: 1rem;
         }
     }
-}
-
-.controls {
-    width: 20%;
-    height: 100%;
-}
-
-.messages {
-    height: 63%;
 }
 
 .messages ul, .users ul {
