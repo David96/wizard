@@ -179,7 +179,7 @@ export class AnnounceUI extends React.Component<{}, {value: string}> {
 }
 
 export function ScoreBoardUI(props : {players: {score: number, name: string}[]}) {
-  props.players.sort((a, b) => a.score - b.score);
+  props.players.sort((a, b) => b.score - a.score);
   let place = 1;
   const table_entries = props.players.map((player) => {
     return <tr><td>{place++}</td><td>{player.name}</td><td>{player.score}</td></tr>
