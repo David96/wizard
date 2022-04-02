@@ -1,5 +1,6 @@
 {
   "name": "app",
+  "homepage": "/wizard",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -24,7 +25,7 @@
     "start:js": "react-scripts start",
     "build:js": "react-scripts build",
     "start": "npm-run-all -p watch:css start:js",
-    "build": "npm-run-all build:* && mv build/* ../",
+    "build": "npm-run-all build:* && rm -rf ../static/ && mv build/* ../",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
