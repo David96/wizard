@@ -154,6 +154,34 @@ export class JoinUI extends React.Component<{onMessage: Function}, { value: stri
   }
 }
 
+export class ChooseTrumpUI extends React.Component<{}, {value: string}> {
+  state = {value: 'red'};
+
+  handleChoose(event : FormEvent) {
+    event.preventDefault();
+    websocket.send(JSON.stringify({action: 'choose_trump', color: this.state.value}));
+  }
+
+  handleChange(event : FormEvent<HTMLSelectElement>) {
+    this.setState({value: event.currentTarget.value});
+  }
+
+  render() {
+    return (
+        <form id='choose_trump' onSubmit={this.handleChoose.bind(this)}>
+          <select id='color' name='color' value={this.state.value}
+                onChange={this.handleChange.bind(this)}>
+            <option value='red'>Red</option>
+            <option value='yellow'>Yellow</option>
+            <option value='green'>Green</option>
+            <option value='blue'>Blue</option>
+          </select>
+          <input type='submit' value='Choose' />
+        </form>
+    );
+  }
+}
+
 export class AnnounceUI extends React.Component<{}, {value: string}> {
   state = {value: ''};
 

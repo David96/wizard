@@ -83,8 +83,8 @@ class Wizard:
             'hand': player.hand if self.round > 1 else [],
             'round': self.round,
             'trump': self.trump,
-            'announcing': self.announcing,
-            'choosing_trump': self.choosing_trump,
+            'announcing': self.announcing and not self.choosing_trump,
+            'choosing_trump': self.choosing_trump == name,
             'game_over': self.game_over,
             'winners': [winner.name for winner in self.winners],
         })

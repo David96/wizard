@@ -1,7 +1,7 @@
 import React, {FormEvent} from 'react';
 import ReactDOM from 'react-dom';
 import {websocket, Message, MessageType, Card, CardType, AnnounceUI, HandUI, TableUI, UserListUI,
-        MessageListUI, ScoreBoardUI, JoinUI} from './UIElements'
+        MessageListUI, ScoreBoardUI, JoinUI, ChooseTrumpUI} from './UIElements'
 import './index.css';
 
 interface GameScreenProps {
@@ -30,6 +30,7 @@ class GameScreen extends React.Component<GameScreenProps, {}> {
               </div>
           }
           {this.props.game_state.announcing && <AnnounceUI />}
+          {this.props.game_state.choosing_trump && <ChooseTrumpUI />}
           <TableUI trump={this.props.game_state.trump} cards={this.props.game_state.table} />
           <HandUI cards={this.props.game_state.hand} />
         </div>,
