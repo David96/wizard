@@ -126,9 +126,24 @@ export class JoinUI extends React.Component<{onMessage: Function}, { value: stri
 
   handleJoin(event : FormEvent) {
     event.preventDefault();
+    this.join();
+  }
+
+  join() {
     const ws = new WebSocket('ws://127.0.0.1:6791');
     ws.onopen = this.onOpen.bind(this);
     ws.onmessage = this.onMessage;
+
+    ws.onerror = (e) => {
+      console.log("Websocket error: " + e);
+      ws.close();
+    }
+
+    ws.onclose = (ev: CloseEvent) => {
+      console.log("Websocket closed: " + ev.reason);
+      console.log("Reconnecting…");
+      this.join();
+    };
 
     websocket = ws;
   }
