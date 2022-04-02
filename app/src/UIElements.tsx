@@ -1,6 +1,7 @@
 import React, {FormEvent} from 'react';
 
 export let websocket : WebSocket;
+export let username : string;
 
 export enum MessageType {
   MESSAGE,
@@ -153,7 +154,8 @@ export class JoinUI extends React.Component<{onMessage: Function}, { value: stri
   }
 
   onOpen() {
-    websocket.send(JSON.stringify({action: 'join', name: this.state.value}));
+    username = this.state.value;
+    websocket.send(JSON.stringify({action: 'join', name: username}));
   }
 
   render() {

@@ -1,7 +1,7 @@
 import React, {FormEvent} from 'react';
 import ReactDOM from 'react-dom';
-import {websocket, Message, MessageType, Card, CardType, AnnounceUI, HandUI, TableUI, UserListUI,
-        MessageListUI, ScoreBoardUI, JoinUI, ChooseTrumpUI} from './UIElements'
+import {username, websocket, Message, MessageType, Card, CardType, AnnounceUI, HandUI, TableUI,
+  UserListUI, MessageListUI, ScoreBoardUI, JoinUI, ChooseTrumpUI} from './UIElements'
 import './index.css';
 
 interface Player {
@@ -38,6 +38,12 @@ class GameScreen extends React.Component<GameScreenProps> {
     });
   }
   render() {
+    document.title = "Wizard";
+    this.props.players.forEach((player) => {
+      if (player.name == username && player.turn) {
+        document.title = "Wizard - It's your turn!";
+      }
+    });
     return [
         <div className='main'>
           {this.props.waiting_for && this.props.waiting_for.length > 0 &&
