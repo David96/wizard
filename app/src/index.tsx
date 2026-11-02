@@ -1,6 +1,6 @@
 import React, {FormEvent} from 'react';
 import ReactDOM from 'react-dom';
-import {username, websocket, Message, MessageType, Card, CardType, AnnounceUI, HandUI, TableUI,
+import {username, websocket, Message, MessageType, Card, AnnounceUI, HandUI, TableUI,
   UserListUI, MessageListUI, ScoreBoardUI, JoinUI, ChooseTrumpUI} from './UIElements'
 import './index.css';
 
@@ -40,8 +40,8 @@ class GameScreen extends React.Component<GameScreenProps> {
   render() {
     document.title = "Wizard";
     let curPlayer = this.props.players.find((p) => p.turn)
-    let myTurn = (!this.props.game_state.choosing_trump && curPlayer && curPlayer.name == username)
-              || this.props.game_state.choosing_trump == username;
+    let myTurn = (!this.props.game_state.choosing_trump && curPlayer && curPlayer.name === username)
+              || this.props.game_state.choosing_trump === username;
     if (myTurn) {
         document.title = "Wizard - It's your turn!";
     }
@@ -56,7 +56,7 @@ class GameScreen extends React.Component<GameScreenProps> {
               </div>
           }
           {this.props.game_state.announcing && myTurn && <AnnounceUI />}
-          {this.props.game_state.choosing_trump == username && <ChooseTrumpUI />}
+          {this.props.game_state.choosing_trump === username && <ChooseTrumpUI />}
           <TableUI trump={this.props.game_state.trump} cards={this.props.game_state.table} />
           <HandUI cards={this.props.game_state.hand} />
         </div>,
