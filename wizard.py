@@ -98,6 +98,7 @@ class Wizard:
                 'score': player.score,
                 'tricks': player.tricks,
                 'turn': self.current_player > -1 and
+                                self.current_player < len(self.players) and
                                 player == self._sorted_players()[self.current_player]
             } for player in self._sorted_players()]
         })
