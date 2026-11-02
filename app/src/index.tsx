@@ -71,6 +71,7 @@ class GameScreen extends React.Component<GameScreenProps> {
 interface WaitingRoomScreenProps {
   game_over : boolean;
   players : Player[];
+  winners : String[];
   creator : boolean;
 }
 class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
@@ -82,16 +83,9 @@ class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
   render() {
     let winners = "";
     if (this.props.game_over) {
-      this.props.players.sort((a : Player, b: Player) => a.score - b.score);
-      winners = this.props.players[0].name;
-      let i;
-      for (i = 1; i < this.props.players.length; ++i) {
-        if (this.props.players[0].score !== this.props.players[i].score) {
-          break;
-        }
-        winners += ", " + this.props.players[i].name;
-      }
-      if (i > 1) {
+      let winner_list = this.props.winners;
+      winners = winner_list.join(", ");
+      if (winner_list.length > 1) {
         winners = winners + " win the game!";
       } else {
         winners = winners + " wins the game!";
@@ -157,6 +151,7 @@ class Game extends React.Component<{}, GameUIState> {
         return (
           <WaitingRoomScreen
             players={this.state.players ?? []}
+            winners={this.state.game_state?.winners ?? []}
             creator={this.state.creator}
             game_over={false} />
         );
@@ -176,6 +171,7 @@ class Game extends React.Component<{}, GameUIState> {
         return (
           <WaitingRoomScreen
             players={this.state.players ?? []}
+            winners={this.state.game_state?.winners ?? []}
             creator={this.state.creator}
             game_over={true} />
         );
