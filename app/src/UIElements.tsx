@@ -113,14 +113,34 @@ export function UserListUI(props : any) {
 }
 
 export function MessageListUI(props : any) {
-  const messages = props.messages.map((message : Message) =>
-    <li className={(message.msg_type === MessageType.ERROR ? "error": undefined) }
-      key={message.msg}>{message.msg}</li>
+  const listRef = React.useRef<HTMLUListElement>(null);
+  const stickToBottom = React.useRef(true);
+
+  // Remember whether the user is (almost) at the bottom
+  const onScroll = () => {
+    const el = listRef.current;
+    if (el) {
+      stickToBottom.current =
+        el.scrollHeight - el.scrollTop - el.clientHeight < 30;
+    }
+  };
+
+  // After every new message, jump to the bottom (unless the user scrolled up)
+  React.useLayoutEffect(() => {
+    const el = listRef.current;
+    if (el && stickToBottom.current) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [props.messages.length]);
+
+  const messages = props.messages.map((message : Message, i : number) =>
+    <li className={message.msg_type === MessageType.ERROR ? "error" : undefined}
+      key={i}>{message.msg}</li>
   );
   return (
     <div className="messages">
       <h3>Messages</h3>
-      <ul id='messageList'>{messages}</ul>
+      <ul id='messageList' ref={listRef} onScroll={onScroll}>{messages}</ul>
     </div>
   );
 }
