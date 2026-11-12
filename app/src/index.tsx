@@ -33,6 +33,7 @@ interface GameScreenProps {
   messages : Message[];
   waiting_for : string[];
   creator : boolean;
+  room_id? : string;
 }
 
 class GameScreen extends React.Component<GameScreenProps> {
@@ -65,6 +66,8 @@ class GameScreen extends React.Component<GameScreenProps> {
           <HandUI cards={this.props.game_state.hand} />
         </div>,
         <div className='controls right'>
+          {this.props.room_id &&
+              <div className='room-id'>Room: {this.props.room_id}</div>}
           <UserListUI round={this.props.game_state.round} players={this.props.players} />
           <MessageListUI messages={this.props.messages} />
         </div>,
@@ -224,7 +227,8 @@ class Game extends React.Component<{}, GameUIState> {
             messages={this.state.messages}
             game_state={this.state.game_state}
             waiting_for={this.state.waiting_for}
-            creator={this.state.creator} />
+            creator={this.state.creator}
+            room_id={this.state.room_id} />
         );
       case GameStates.GAME_OVER:
         return (
