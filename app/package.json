@@ -4,15 +4,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@types/node": ">=14",
-    "@types/node-sass": ">=4.11.2",
-    "@types/react": ">=17.0.3",
-    "@types/react-dom": ">=17.0.1",
-    "npm-run-all": ">=4.1.5",
-    "react": ">=17.0.1",
-    "react-dom": ">=17.0.1",
-    "react-scripts": ">=4.0.3",
-    "typescript": ">=4.2.3"
+    "@types/node": "*",
+    "@types/react": "*",
+    "@types/react-dom": "*",
+    "npm-run-all": "*",
+    "react": "*",
+    "react-dom": "*",
+    "react-scripts": "*",
+    "typescript": "*"
   },
   "scripts": {
     "build:css": "sass --no-source-map --style=compressed src/:src/",
@@ -20,7 +19,7 @@
     "start:js": "react-scripts start",
     "build:js": "react-scripts build",
     "start": "npm-run-all -p watch:css start:js",
-    "build": "npm-run-all build:* && rm -rf ../static/ && mv build/* ../",
+    "build": "npm-run-all build:*",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

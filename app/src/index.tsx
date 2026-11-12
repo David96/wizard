@@ -1,8 +1,10 @@
 import React, {FormEvent} from 'react';
-import ReactDOM from 'react-dom';
-import {username, websocket, Message, MessageType, Card, AnnounceUI, HandUI, TableUI,
+import { createRoot } from 'react-dom/client';
+import {username, roomname, Message, MessageType, Card, AnnounceUI, HandUI, TableUI,
   UserListUI, MessageListUI, ScoreBoardUI, JoinUI, ChooseTrumpUI} from './UIElements'
 import './index.css';
+
+export let websocket : WebSocket;
 
 interface Player {
   name : string;
@@ -73,6 +75,7 @@ interface WaitingRoomScreenProps {
   players : Player[];
   winners : String[];
   creator : boolean;
+  room_id? : string;
 }
 class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
   onClick(event : FormEvent) {
@@ -93,6 +96,7 @@ class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
     }
     return (
       <div className='pyro-container'>
+        <h2>Your room id: {this.props.room_id}</h2>
         <div id="gameover" className={this.props.game_over ? "pyro" : undefined}>
           <div className="before"></div>
           <div className="after"></div>
@@ -123,11 +127,31 @@ interface GameUIState{
   game_state? : GameState;
   waiting_for : string[];
   messages : Message[];
+  room_id?: string;
+  ready : boolean;
 }
 class Game extends React.Component<{}, GameUIState> {
 
   constructor(props : {}) {
     super(props);
+
+    const ws = new WebSocket('ws://127.0.0.1:6791');
+    ws.onopen = this.onOpen.bind(this);
+    ws.onmessage = this.onMessage.bind(this);
+
+    ws.onerror = (e) => {
+      console.log("Websocket error: " + e);
+      ws.close();
+    }
+
+    ws.onclose = (ev: CloseEvent) => {
+      console.log("Websocket closed: " + ev.reason);
+      console.log("Reconnecting…");
+      websocket.send(JSON.stringify({action: 'join', name: username, room: roomname}));
+    };
+
+    websocket = ws;
+
     this.state = {
       name: '',
       creator: false,
@@ -137,15 +161,22 @@ class Game extends React.Component<{}, GameUIState> {
       game_state: undefined,
       waiting_for: [],
       messages: [],
+      ready : false,
+      room_id : undefined
     };
   }
 
+  onOpen() {
+    this.setState({ready: true});
+  }
+
   render() {
+    if (!this.state.ready) return;
+
     switch (this.state.state) {
       case GameStates.NONE:
         return (
-          <JoinUI
-            onMessage={(event : MessageEvent) => this.onMessage(event)} />
+          <JoinUI />
         );
       case GameStates.JOINED:
         return (
@@ -153,6 +184,7 @@ class Game extends React.Component<{}, GameUIState> {
             players={this.state.players ?? []}
             winners={this.state.game_state?.winners ?? []}
             creator={this.state.creator}
+            room_id={this.state.room_id}
             game_over={false} />
         );
       case GameStates.RUNNING:
@@ -173,6 +205,7 @@ class Game extends React.Component<{}, GameUIState> {
             players={this.state.players ?? []}
             winners={this.state.game_state?.winners ?? []}
             creator={this.state.creator}
+            room_id={this.state.room_id}
             game_over={true} />
         );
       default:
@@ -188,6 +221,7 @@ class Game extends React.Component<{}, GameUIState> {
           messages: this.state.messages.concat([{msg_type: MessageType.MESSAGE,
                                                 msg: 'You joined the game!'}]),
           state: GameStates.JOINED,
+          room_id: data.room_id
         });
         break;
       case 'state':
@@ -219,8 +253,6 @@ class Game extends React.Component<{}, GameUIState> {
   }
 }
 
-
-ReactDOM.render(
-  <Game />,
-  document.getElementsByClassName('game')[0]
-);
+const container = document.getElementsByClassName('game')[0];
+const root = createRoot(container!);
+root.render(<Game />);

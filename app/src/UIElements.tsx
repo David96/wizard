@@ -1,7 +1,8 @@
 import React, {FormEvent} from 'react';
+import {websocket} from './index';
 
-export let websocket : WebSocket;
 export let username : string;
+export let roomname : string;
 
 export enum MessageType {
   MESSAGE,
@@ -94,9 +95,9 @@ export class HandUI extends React.Component<any, any> {
 
 export function UserListUI(props : any) {
   let tricks = 0;
-  const players = props.players.map((user : any) => {
+  const players = props.players.map((user : any, i : number) => {
       tricks += user.announcement > 0 ? user.announcement : 0;
-      return <li key={user.name} className={user.turn ? "turn" : undefined}>
+      return <li key={i} className={user.turn ? "turn" : undefined}>
                {user.name}
                {user.announcement > -1 && " (" + user.tricks + " von " + user.announcement + ") "}
                &nbsp;({user.score})
@@ -145,53 +146,64 @@ export function MessageListUI(props : any) {
   );
 }
 
-export class JoinUI extends React.Component<{onMessage: Function}, { value: string}> {
-  onMessage : any;
-  state = { value: '' };
+export class JoinUI extends React.Component<{},
+                                            {username: string, roomname: string}> {
+  constructor(props : {}) {
+    super(props);
+    this.state = {
+      username: '',
+      roomname: ''
+    }
+  }
 
   handleJoin(event : FormEvent) {
     event.preventDefault();
-    this.join();
+    this.joinRoom(this.state.roomname);
   }
 
-  join() {
-    const ws = new WebSocket('ws://127.0.0.1:6791');
-    ws.onopen = this.onOpen.bind(this);
-    ws.onmessage = this.onMessage;
-
-    ws.onerror = (e) => {
-      console.log("Websocket error: " + e);
-      ws.close();
-    }
-
-    ws.onclose = (ev: CloseEvent) => {
-      console.log("Websocket closed: " + ev.reason);
-      console.log("Reconnecting…");
-      this.join();
-    };
-
-    websocket = ws;
+  joinRoom(room : string) {
+    username = this.state.username;
+    roomname = room;
+    websocket.send(JSON.stringify({action: 'join', name: username, room: room}));
   }
 
-  handleChange(event : FormEvent<HTMLInputElement>) {
-    this.setState({value: event.currentTarget.value});
+  deleteRoom(name : string) {
+    websocket.send(JSON.stringify({action: 'delete_room', name: name}))
   }
 
-  onOpen() {
-    username = this.state.value;
-    websocket.send(JSON.stringify({action: 'join', name: username}));
+  handleCreate(event : FormEvent) {
+    event.preventDefault();
+    websocket.send(JSON.stringify({action: 'create_room', name: this.state.username}));
+  }
+
+  handleUserChange(event : FormEvent<HTMLInputElement>) {
+    this.setState({username: event.currentTarget.value});
   }
 
   render() {
-    this.onMessage = this.props.onMessage;
-    return (
-      <form className='join' onSubmit={this.handleJoin.bind(this)}>
-        <input type='text' onChange={this.handleChange.bind(this)}
-                         value={this.state.value}
-                         placeholder='Name' />
-        <input type='submit' value='Join' />
-      </form>
-    );
+    return [
+      <h1>Wizard</h1>,
+      <div className='joinUI'>
+        <div>
+          <label htmlFor='username'>Username:</label><br />
+          <input type='text' id='username' onChange={
+            (event) => this.setState({username: event.currentTarget.value})}
+            value={this.state.username}
+            placeholder='Name' />
+        </div>
+        <form className="joinRoom" onSubmit={this.handleJoin.bind(this)}>
+          <input type='text' onChange={
+                  (event) => this.setState({roomname: event.currentTarget.value})}
+                  value={this.state.roomname}
+                  placeholder='Room Code' />
+          <input disabled={!this.state.username || !this.state.roomname}
+              type='submit' value='Join' />
+        </form>
+        <form className="createRoom" onSubmit={this.handleCreate.bind(this)}>
+          <input disabled={!this.state.username} type='submit' value='Create New' />
+        </form>
+      </div>
+    ];
   }
 }
 
