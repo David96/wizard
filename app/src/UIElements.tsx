@@ -159,8 +159,8 @@ export class JoinUI extends React.Component<{error? : string},
   constructor(props : {}) {
     super(props);
     this.state = {
-      username: '',
-      roomname: ''
+      username: localStorage.getItem('username') ?? '',
+      roomname: localStorage.getItem('roomname') ?? ''
     }
   }
 
@@ -172,6 +172,8 @@ export class JoinUI extends React.Component<{error? : string},
   joinRoom(room : string) {
     username = this.state.username;
     roomname = room;
+    localStorage.setItem('username', username);
+    localStorage.setItem('roomname', room);
     websocket.send(JSON.stringify({action: 'join', name: username, room: room}));
   }
 
@@ -181,6 +183,7 @@ export class JoinUI extends React.Component<{error? : string},
 
   handleCreate(event : FormEvent) {
     event.preventDefault();
+    localStorage.setItem('username', this.state.username);
     websocket.send(JSON.stringify({action: 'create_room', name: this.state.username}));
   }
 
