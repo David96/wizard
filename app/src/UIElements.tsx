@@ -183,6 +183,9 @@ export class JoinUI extends React.Component<{error? : string},
 
   handleCreate(event : FormEvent) {
     event.preventDefault();
+    // Creating the room instantly joins, so set the global username here as well
+    // roomname is set in index.tsx, since it's unknown at this point
+    username = this.state.username;
     localStorage.setItem('username', this.state.username);
     websocket.send(JSON.stringify({action: 'create_room', name: this.state.username}));
   }
