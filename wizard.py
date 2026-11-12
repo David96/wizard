@@ -176,8 +176,13 @@ class Wizard:
         if self.players[winner].active:
             self.current_player = actives.index(self.players[winner])
         else:
-            # A ghost won the trick: the first remaining player opens the next one
-            self.current_player = 0
+            # A ghost won the trick: the player after him in rotation
+            # order opens the next trick instead
+            players = self._sorted_players()
+            idx = players.index(self.players[winner])
+            next_player = next(p for p in players[idx + 1:] + players[:idx + 1]
+                              if p.active)
+            self.current_player = actives.index(next_player)
         self.first_player = self.current_player
         self.table.clear()
         if all(not player.hand for player in actives):
