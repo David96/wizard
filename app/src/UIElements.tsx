@@ -2,12 +2,6 @@ import React, {FormEvent} from 'react';
 import {websocket} from './index';
 
 export let username : string;
-export let roomname : string;
-
-export function setRoom(room : string) {
-  roomname = room;
-  localStorage.setItem('roomname', room);
-}
 
 export enum MessageType {
   MESSAGE,
@@ -165,7 +159,7 @@ export class JoinUI extends React.Component<{error? : string},
     super(props);
     this.state = {
       username: localStorage.getItem('username') ?? '',
-      roomname: localStorage.getItem('roomname') ?? ''
+      roomname: ''
     }
   }
 
@@ -176,9 +170,7 @@ export class JoinUI extends React.Component<{error? : string},
 
   joinRoom(room : string) {
     username = this.state.username;
-    roomname = room;
     localStorage.setItem('username', username);
-    localStorage.setItem('roomname', room);
     websocket.send(JSON.stringify({action: 'join', name: username, room: room}));
   }
 

@@ -1,10 +1,11 @@
 import React, {FormEvent} from 'react';
 import { createRoot } from 'react-dom/client';
-import {username, roomname, setRoom, Message, MessageType, Card, AnnounceUI, HandUI, TableUI,
+import {username, Message, MessageType, Card, AnnounceUI, HandUI, TableUI,
   UserListUI, MessageListUI, ScoreBoardUI, JoinUI, ChooseTrumpUI} from './UIElements'
 import './index.css';
 
 export let websocket : WebSocket;
+let roomname : string;
 
 interface Player {
   name : string;
@@ -244,7 +245,7 @@ class Game extends React.Component<{}, GameUIState> {
     switch (data.type) {
       case 'joined':
         // Remember the room we are in so a reconnect can rejoin it
-        setRoom(data.room_id);
+        roomname = data.room_id;
         this.setState({
           messages: this.state.messages.concat([{msg_type: MessageType.MESSAGE,
                                                 msg: 'You joined the game!'}]),
