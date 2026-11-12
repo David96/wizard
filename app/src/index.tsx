@@ -1,6 +1,6 @@
 import React, {FormEvent} from 'react';
 import { createRoot } from 'react-dom/client';
-import {username, roomname, Message, MessageType, Card, AnnounceUI, HandUI, TableUI,
+import {username, roomname, setRoom, Message, MessageType, Card, AnnounceUI, HandUI, TableUI,
   UserListUI, MessageListUI, ScoreBoardUI, JoinUI, ChooseTrumpUI} from './UIElements'
 import './index.css';
 
@@ -243,6 +243,8 @@ class Game extends React.Component<{}, GameUIState> {
     const data = JSON.parse(event.data);
     switch (data.type) {
       case 'joined':
+        // Remember the room we are in so a reconnect can rejoin it
+        setRoom(data.room_id);
         this.setState({
           messages: this.state.messages.concat([{msg_type: MessageType.MESSAGE,
                                                 msg: 'You joined the game!'}]),

@@ -4,6 +4,11 @@ import {websocket} from './index';
 export let username : string;
 export let roomname : string;
 
+export function setRoom(room : string) {
+  roomname = room;
+  localStorage.setItem('roomname', room);
+}
+
 export enum MessageType {
   MESSAGE,
   ERROR,
