@@ -128,6 +128,7 @@ interface GameUIState{
   game_state? : GameState;
   waiting_for : string[];
   messages : Message[];
+  join_error : string;
   room_id?: string;
   ready : boolean;
 }
@@ -145,6 +146,7 @@ class Game extends React.Component<{}, GameUIState> {
       game_state: undefined,
       waiting_for: [],
       messages: [],
+      join_error: '',
       ready : false,
       room_id : undefined
     };
@@ -186,7 +188,7 @@ class Game extends React.Component<{}, GameUIState> {
     switch (this.state.state) {
       case GameStates.NONE:
         return (
-          <JoinUI />
+          <JoinUI error={this.state.join_error} />
         );
       case GameStates.JOINED:
         return (
@@ -251,8 +253,13 @@ class Game extends React.Component<{}, GameUIState> {
           [{msg_type: MessageType.MESSAGE, msg: data.msg}])});
         break;
       case 'error':
-        this.setState({messages: this.state.messages.concat(
-          [{msg_type: MessageType.ERROR, msg: data.msg}])});
+        if (this.state.state === GameStates.NONE) {
+          // There is no message list on the join screen: show it inline
+          this.setState({join_error: data.msg});
+        } else {
+          this.setState({messages: this.state.messages.concat(
+            [{msg_type: MessageType.ERROR, msg: data.msg}])});
+        }
         break;
       case 'management':
         this.setState({waiting_for: data.waiting_for});

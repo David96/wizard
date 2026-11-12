@@ -154,7 +154,7 @@ export function MessageListUI(props : any) {
   );
 }
 
-export class JoinUI extends React.Component<{},
+export class JoinUI extends React.Component<{error? : string},
                                             {username: string, roomname: string}> {
   constructor(props : {}) {
     super(props);
@@ -210,6 +210,7 @@ export class JoinUI extends React.Component<{},
         <form className="createRoom" onSubmit={this.handleCreate.bind(this)}>
           <input disabled={!this.state.username} type='submit' value='Create New' />
         </form>
+        {this.props.error && <p className="error">{this.props.error}</p>}
       </div>
     ];
   }
