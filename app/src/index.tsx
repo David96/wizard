@@ -135,23 +135,6 @@ class Game extends React.Component<{}, GameUIState> {
   constructor(props : {}) {
     super(props);
 
-    const ws = new WebSocket('ws://127.0.0.1:6791');
-    ws.onopen = this.onOpen.bind(this);
-    ws.onmessage = this.onMessage.bind(this);
-
-    ws.onerror = (e) => {
-      console.log("Websocket error: " + e);
-      ws.close();
-    }
-
-    ws.onclose = (ev: CloseEvent) => {
-      console.log("Websocket closed: " + ev.reason);
-      console.log("Reconnecting…");
-      websocket.send(JSON.stringify({action: 'join', name: username, room: roomname}));
-    };
-
-    websocket = ws;
-
     this.state = {
       name: '',
       creator: false,
@@ -164,10 +147,36 @@ class Game extends React.Component<{}, GameUIState> {
       ready : false,
       room_id : undefined
     };
+
+    this.connect();
+  }
+
+  connect() {
+    const ws = new WebSocket('ws://127.0.0.1:6791');
+    websocket = ws;
+    ws.onopen = this.onOpen.bind(this);
+    ws.onmessage = this.onMessage.bind(this);
+
+    ws.onerror = (e) => {
+      console.log("Websocket error: " + e);
+      ws.close();
+    }
+
+    ws.onclose = (ev: CloseEvent) => {
+      console.log("Websocket closed: " + ev.reason);
+      console.log("Reconnecting…");
+      // Give the server a chance to come back up before retrying
+      window.setTimeout(() => this.connect(), 2000);
+    };
   }
 
   onOpen() {
     this.setState({ready: true});
+    // After a reconnect, join the room again so the server sends us the
+    // current game state (the initial join is handled by the JoinUI)
+    if (username && roomname) {
+      websocket.send(JSON.stringify({action: 'join', name: username, room: roomname}));
+    }
   }
 
   render() {
