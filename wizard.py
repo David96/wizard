@@ -68,14 +68,28 @@ class Wizard:
         return True
 
     def remove_player(self, name):
-        del self.players[name]
+        player = self.players[name]
+        if self.room.started and not self.game_over:
+            # While the game is running, keep kicked players around as ghosts:
+            # cards they played stay owned by them and their score can still be
+            # shown at the end. They never act or receive cards again.
+            if player.active:
+                removed_idx = self._sorted_active_players().index(player)
+                player.active = False
+                player.hand = []
+                actives = self._sorted_active_players()
+                if self.choosing_trump == name and actives:
+                    self.choosing_trump = actives[removed_idx % len(actives)].name
+                self._fixup_indices(removed_idx)
+        else:
+            del self.players[name]
         self.players_dirty = True
 
     # Events
     def state_event(self, name):
         player = self.players[name]
         table = self.table if self.round > 1 or not self.announcing \
-                           else [player.hand[0] for player in self._sorted_players()
+                           else [player.hand[0] for player in self._sorted_active_players()
                                    if player.name != name]
         return json.dumps({
             'type': 'state',
@@ -90,21 +104,25 @@ class Wizard:
         })
 
     def player_event(self, _):
+        actives = self._sorted_active_players()
         return json.dumps({
             'type': 'player',
             'players': [{
                 'name': player.name,
+                'active': player.active,
                 'announcement': player.announcement,
                 'score': player.score,
                 'tricks': player.tricks,
                 'turn': self.current_player > -1 and
-                                self.current_player < len(self.players) and
-                                player == self._sorted_players()[self.current_player]
+                                self.current_player < len(actives) and
+                                player == actives[self.current_player]
             } for player in self._sorted_players()]
         })
 
     # Actions
     def start_game(self):
+        # Ghosts of previous games don't get a second life
+        self.players = {name: p for name, p in self.players.items() if p.active}
         self.reset()
         self.new_round()
         self.players_dirty = self.state_dirty = True
@@ -122,7 +140,7 @@ class Wizard:
     def play_card(self, name, data):
         if self.announcing or self.choosing_trump:
             raise Exception('God damn it, you aren\'t allowed to play a card right now!')
-        if self.current_player < 0 or name != self._sorted_players()[self.current_player].name:
+        if self.current_player < 0 or name != self._sorted_active_players()[self.current_player].name:
             return
             #raise Exception('It\'s not your turn, bitch')
         player = self.players[name]
@@ -133,7 +151,7 @@ class Wizard:
             raise Exception('Sadly, you are not allowed to play this card. Idiot.')
         player.hand.remove(card)
         self.table.append(card)
-        self.current_player = (self.current_player + 1) % len(self.players)
+        self.current_player = (self.current_player + 1) % len(self._sorted_active_players())
 
         if self.current_player == self.first_player:
             self.finish_trick()
@@ -145,22 +163,32 @@ class Wizard:
         self.players[winner].tricks += 1
         self.room.send_message('%s wins the trick.' % winner)
         self.current_player = -1
-        if len(self.players[winner].hand) == 0:
+        # The round ends once all *active* players are out of cards
+        if all(not player.hand for player in self._sorted_active_players()):
             self.finish_round()
         self.players_dirty = self.state_dirty = True
 
     def new_trick(self):
         winner = self._get_trick_winner()
-        self.current_player = self._sorted_players().index(self.players[winner])
+        actives = self._sorted_active_players()
+        if not actives:
+            return
+        if self.players[winner].active:
+            self.current_player = actives.index(self.players[winner])
+        else:
+            # A ghost won the trick: the first remaining player opens the next one
+            self.current_player = 0
         self.first_player = self.current_player
         self.table.clear()
-        if len(self.players[winner].hand) == 0:
+        if all(not player.hand for player in actives):
             self.new_round()
         self.state_dirty = self.players_dirty = True
 
     def finish_round(self):
         for player in self.players.values():
-            diff = abs(player.announcement - player.tricks)
+            # Ghosts that never announced count as having announced 0 tricks
+            announcement = player.announcement if player.announcement > -1 else 0
+            diff = abs(announcement - player.tricks)
             if diff == 0:
                 score = 20 + player.tricks * 10
             else:
@@ -169,9 +197,12 @@ class Wizard:
             self.room.send_message('%s makes %d points.' % (player.name, score))
 
     def new_round(self):
+        actives = self._sorted_active_players()
+        if not actives:
+            return
         self.round += 1
         self.table.clear()
-        self.current_player = (self.round - 1) % len(self.players)
+        self.current_player = (self.round - 1) % len(actives)
         self.first_player = self.current_player
 
         # Create stack of all cards
@@ -192,7 +223,7 @@ class Wizard:
             _id += 1
 
         # if the game is over, figure out the winner(s)
-        if self.round * len(self.players) > len(self.stack):
+        if self.round * len(actives) > len(self.stack):
             self.game_over = True
             players = self._sorted_players()
             best_players = [players[0]]
@@ -210,13 +241,13 @@ class Wizard:
             trump_card = random.sample(self.stack, 1)[0]
             self.stack.remove(trump_card)
             if trump_card['type'] == TYPE_WIZARD:
-                prev_player = (self.current_player - 1) % len(self.players)
-                self.choosing_trump = self._sorted_players()[prev_player].name
+                prev_player = (self.current_player - 1) % len(actives)
+                self.choosing_trump = self._sorted_active_players()[prev_player].name
                 self.ACTIONS['choose_trump'] = self.choose_trump
             self.trump = trump_card
 
-        # Hand out cards to players
-        for player in self.players.values():
+        # Hand out cards to players (ghosts don't get any)
+        for player in actives:
             player.announcement = -1
             player.tricks = 0
             sample = random.sample(self.stack, self.round)
@@ -230,13 +261,13 @@ class Wizard:
     def announce(self, name, data):
         if not self.announcing or self.choosing_trump:
             raise Exception('You shouldn\'t be doing this…')
-        if name != self._sorted_players()[self.current_player].name:
+        if name != self._sorted_active_players()[self.current_player].name:
             raise Exception('It\'s not your turn, bitch')
         if not isinstance(data['announcement'], int):
             raise Exception('Maybe try an actual number?')
         if data['announcement'] > self.round:
             raise Exception('U dumb af or what?!')
-        next_player = (self.current_player + 1) % len(self.players)
+        next_player = (self.current_player + 1) % len(self._sorted_active_players())
         self.players[name].announcement = data['announcement']
         self.players_dirty = True
         if next_player == self.first_player:
@@ -250,7 +281,7 @@ class Wizard:
             if self.round == 1:
                 # Based on the assumption, that in the first round, the first player is also
                 # the first entry in sorted_players, otherwise the order is wrong
-                self.table = [player.hand.pop() for player in self._sorted_players()]
+                self.table = [player.hand.pop() for player in self._sorted_active_players()]
                 self.finish_trick()
                 self.room.call_later(0.1, self.new_trick)
                 return
@@ -288,7 +319,7 @@ class Wizard:
 
 
     def _sum(self):
-        return sum([player.announcement for player in self.players.values()])
+        return sum([player.announcement for player in self._sorted_active_players()])
 
     def _get_trick_winner(self):
         first_card = self._get_first_card()
@@ -309,6 +340,25 @@ class Wizard:
 
     def _sorted_players(self):
         return sorted(self.players.values(), key=lambda p: p.name.lower())
+
+    def _sorted_active_players(self):
+        return [player for player in self._sorted_players() if player.active]
+
+    def _fixup_indices(self, removed_idx):
+        # The removed player is gone from _sorted_active_players, so all
+        # indices after him shift by one.
+        actives = self._sorted_active_players()
+        if not actives:
+            self.current_player = -1
+            return
+        if removed_idx == self.current_player:
+            # It was his turn: the same index now points to the next player
+            self.current_player %= len(actives)
+        elif removed_idx < self.current_player:
+            # He already played/announced: shift the turn index left
+            self.current_player -= 1
+        if removed_idx < self.first_player:
+            self.first_player -= 1
 
     def cts(self, color):
         return self.colors[color]
