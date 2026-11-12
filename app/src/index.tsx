@@ -131,6 +131,7 @@ interface GameUIState{
   join_error : string;
   room_id?: string;
   ready : boolean;
+  connection_lost : boolean;
 }
 class Game extends React.Component<{}, GameUIState> {
 
@@ -148,6 +149,7 @@ class Game extends React.Component<{}, GameUIState> {
       messages: [],
       join_error: '',
       ready : false,
+      connection_lost : false,
       room_id : undefined
     };
 
@@ -168,13 +170,14 @@ class Game extends React.Component<{}, GameUIState> {
     ws.onclose = (ev: CloseEvent) => {
       console.log("Websocket closed: " + ev.reason);
       console.log("Reconnecting…");
+      this.setState({connection_lost: true});
       // Give the server a chance to come back up before retrying
       window.setTimeout(() => this.connect(), 2000);
     };
   }
 
   onOpen() {
-    this.setState({ready: true});
+    this.setState({ready: true, connection_lost: false});
     // After a reconnect, join the room again so the server sends us the
     // current game state (the initial join is handled by the JoinUI)
     if (username && roomname) {
@@ -183,8 +186,19 @@ class Game extends React.Component<{}, GameUIState> {
   }
 
   render() {
-    if (!this.state.ready) return;
+    if (!this.state.ready) {
+      return <div className="connecting">Connecting…</div>;
+    }
+    const screen = this.renderScreen();
+    if (this.state.connection_lost) {
+      return [<div key="reconnect" className="reconnect">
+                Connection lost! Trying to reconnect…</div>,
+              screen];
+    }
+    return screen;
+  }
 
+  renderScreen() : React.ReactNode {
     switch (this.state.state) {
       case GameStates.NONE:
         return (

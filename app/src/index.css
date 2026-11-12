@@ -511,6 +511,25 @@ body, html {
   opacity: 0.5;
 }
 
+.connecting {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+.reconnect {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #b33;
+  color: white;
+  padding: 0.3em 1em;
+  border-radius: 0 0 0.5em 0.5em;
+  z-index: 10;
+}
+
 .red {
   background-color: lightcoral;
 }
