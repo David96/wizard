@@ -96,9 +96,17 @@ export class HandUI extends React.Component<any, any> {
 export function UserListUI(props : any) {
   let tricks = 0;
   const players = props.players.map((user : any, i : number) => {
-      tricks += user.announcement > 0 ? user.announcement : 0;
-      return <li key={i} className={user.turn ? "turn" : undefined}>
-               {user.name}
+      if (user.active) {
+        tricks += user.announcement > 0 ? user.announcement : 0;
+      }
+      let className = undefined;
+      if (user.turn) {
+        className = "turn";
+      } else if (!user.active) {
+        className = "inactive";
+      }
+      return <li key={i} className={className}>
+               {user.name}{!user.active && " (left)"}
                {user.announcement > -1 && " (" + user.tricks + " von " + user.announcement + ") "}
                &nbsp;({user.score})
              </li>

@@ -8,6 +8,7 @@ export let websocket : WebSocket;
 
 interface Player {
   name : string;
+  active : boolean;
   announcement : number;
   score : number;
   tricks : number;

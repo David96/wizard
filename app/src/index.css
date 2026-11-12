@@ -507,6 +507,10 @@ body, html {
   font-weight: bold;
 }
 
+.inactive {
+  opacity: 0.5;
+}
+
 .red {
   background-color: lightcoral;
 }
