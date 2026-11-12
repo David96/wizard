@@ -153,7 +153,7 @@ export function MessageListUI(props : any) {
   );
 }
 
-export class JoinUI extends React.Component<{error? : string},
+export class JoinUI extends React.Component<{error? : string, disconnected? : boolean},
                                             {username: string, roomname: string}> {
   constructor(props : {}) {
     super(props);
@@ -174,10 +174,6 @@ export class JoinUI extends React.Component<{error? : string},
     websocket.send(JSON.stringify({action: 'join', name: username, room: room}));
   }
 
-  deleteRoom(name : string) {
-    websocket.send(JSON.stringify({action: 'delete_room', name: name}))
-  }
-
   handleCreate(event : FormEvent) {
     event.preventDefault();
     // Creating the room instantly joins, so set the global username here as well
@@ -192,30 +188,47 @@ export class JoinUI extends React.Component<{error? : string},
   }
 
   render() {
-    return [
-      <h1>Wizard</h1>,
-      <div className='joinUI'>
-        <div>
-          <label htmlFor='username'>Username:</label><br />
-          <input type='text' id='username' onChange={
-            (event) => this.setState({username: event.currentTarget.value})}
-            value={this.state.username}
-            placeholder='Name' />
+    let status = 'Connected';
+    if (this.props.disconnected) {
+      status = 'Reconnecting…';
+    }
+    return (
+      <div className='join-screen'>
+        <div className='fan'>
+          <div className='c1'></div><div className='c2'></div><div className='c3'></div>
+          <div className='c4'></div><div className='c5'></div>
         </div>
-        <form className="joinRoom" onSubmit={this.handleJoin.bind(this)}>
-          <input type='text' className='room-code' maxLength={6} onChange={
-                  (event) => this.setState({roomname: event.currentTarget.value.toUpperCase()})}
-                  value={this.state.roomname}
-                  placeholder='Room Code' />
-          <input disabled={!this.state.username || !this.state.roomname}
-              type='submit' value='Join' />
-        </form>
-        <form className="createRoom" onSubmit={this.handleCreate.bind(this)}>
-          <input disabled={!this.state.username} type='submit' value='Create New' />
-        </form>
-        {this.props.error && <p className="error">{this.props.error}</p>}
+        <div className='panel'>
+          <div className={this.props.disconnected ? 'status reconnecting' : 'status'}>
+            {status}
+          </div>
+          <h1>Wizard</h1>
+          <form className='join' onSubmit={this.handleJoin.bind(this)}>
+            <div className='field'>
+              <label htmlFor='username'>Your name</label>
+              <input type='text' id='username' maxLength={20} spellCheck={false}
+                onChange={(event) => this.setState({username: event.currentTarget.value})}
+                value={this.state.username} placeholder='Name' />
+            </div>
+            <div className='field'>
+              <label htmlFor='room'>Room code</label>
+              <input type='text' id='room' className='room' maxLength={6} spellCheck={false}
+                onChange={(event) => this.setState({roomname: event.currentTarget.value.toUpperCase()})}
+                value={this.state.roomname} placeholder='ABC123' />
+            </div>
+            <button className='primary' disabled={!this.state.username || !this.state.roomname}>
+              Join room</button>
+          </form>
+          <div className='divider'>● or ●</div>
+          <form className='create' onSubmit={this.handleCreate.bind(this)}>
+            <button className='ghost' disabled={!this.state.username}>
+              Create a new room</button>
+          </form>
+          {this.props.error &&
+            <div className='error-box'>⚠ {this.props.error}</div>}
+        </div>
       </div>
-    ];
+    );
   }
 }
 

@@ -41,28 +41,9 @@ body, html {
 }
 
 .game {
-    h1 {
-        margin: 0;
-        text-align: center;
-        font-family: sans-serif;
-        text-shadow: red 0 0 10px;
-        font-size: 10em;
-    }
     h2 {
         text-align: center;
         color: white;
-    }
-    .joinUI {
-        margin: 0.5em 10em;
-        text-align: center;
-
-        input[type='text'] {
-            margin: 5px;
-            padding: 5px;
-            border-radius: 3px;
-            border: 0;
-            box-shadow: 1px 1px 4px rgba(0,0,0,0.6);
-        }
     }
 }
 
@@ -148,11 +129,6 @@ body, html {
     padding-bottom: 5%;
 }
 
-.room-code {
-    font-family: monospace;
-    text-transform: uppercase;
-}
-
 .turn {
     font-weight: bold;
 }
@@ -217,5 +193,177 @@ body, html {
         text-align: center;
         font-size: 4em;
         margin-top: calc(50vh - 0.5em);
+    }
+}
+
+.join-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+
+    .fan {
+        position: absolute;
+        top: -150px;
+        left: 50%;
+        z-index: 0;
+
+        div {
+            position: absolute;
+            left: -55px;
+            bottom: 0;
+            width: 110px;
+            height: 165px;
+            border-radius: 8px;
+            transform-origin: 50% 200%;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+            opacity: 0.35;
+        }
+        .c1 { background-color: lightcoral; transform: rotate(-32deg); }
+        .c2 { background-color: lightyellow; transform: rotate(-16deg); }
+        .c3 { background-color: lightblue; transform: rotate(0deg); }
+        .c4 { background-color: lightgreen; transform: rotate(16deg); }
+        .c5 { background-color: orange; transform: rotate(32deg); }
+    }
+
+    .panel {
+        position: relative;
+        z-index: 1;
+        width: 420px;
+        max-width: 92%;
+        padding: 2.4em 2.4em 2em;
+        background-color: white;
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 14px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.10);
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 3.4em;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: #c22;
+        text-shadow: rgba(200,30,30,0.35) 0 0 18px;
+        margin-bottom: 1.4em;
+    }
+
+    label {
+        display: block;
+        font-size: 0.72em;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #888;
+        margin: 0 0 0.35em 2px;
+    }
+
+    input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.7em 0.9em;
+        font-size: 1em;
+        color: #222;
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        outline: none;
+
+        &:focus {
+            border-color: #d33;
+            box-shadow: 0 0 0 3px rgba(200,30,30,0.12);
+        }
+        &.room {
+            font-family: monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.55em;
+            text-align: center;
+            font-size: 1.3em;
+            padding-left: 0.55em;
+
+            &::placeholder {
+                letter-spacing: 0.18em;
+                font-size: 0.8em;
+                color: #999;
+            }
+        }
+    }
+
+    .field {
+        margin-bottom: 1.3em;
+    }
+
+    button {
+        width: 100%;
+        padding: 0.75em;
+        font-size: 1em;
+        font-weight: 700;
+        border-radius: 8px;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+
+        &.primary {
+            color: white;
+            border: 0;
+            background: linear-gradient(180deg, #c33, #911);
+            box-shadow: 0 4px 14px rgba(180,30,30,0.35);
+
+            &:hover { background: linear-gradient(180deg, #d44, #a22); }
+            &:disabled {
+                background: #aaa;
+                box-shadow: none;
+                cursor: not-allowed;
+            }
+        }
+        &.ghost {
+            color: #444;
+            background: transparent;
+            border: 1px solid #bbb;
+
+            &:hover {
+                border-color: #d33;
+                color: #c22;
+            }
+            &:disabled {
+                color: #aaa;
+                border-color: #ddd;
+                cursor: not-allowed;
+            }
+        }
+    }
+
+    .divider {
+        text-align: center;
+        color: #aaa;
+        font-size: 0.75em;
+        margin: 1.4em 0 1.1em;
+        letter-spacing: 0.3em;
+    }
+
+    .error-box {
+        margin-top: 1.3em;
+        padding: 0.6em 0.9em;
+        font-size: 0.8em;
+        color: #a12;
+        background-color: #fdeeee;
+        border: 1px solid #ecc;
+        border-radius: 8px;
+    }
+
+    .status {
+        position: absolute;
+        top: 1.1em;
+        right: 1.4em;
+        font-size: 0.68em;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #4a5;
+
+        &::before { content: "● "; }
+        &.reconnecting { color: #b33; }
     }
 }

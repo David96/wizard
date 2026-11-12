@@ -206,7 +206,7 @@ class Game extends React.Component<{}, GameUIState> {
     switch (this.state.state) {
       case GameStates.NONE:
         return (
-          <JoinUI error={this.state.join_error} />
+          <JoinUI error={this.state.join_error} disconnected={this.state.connection_lost} />
         );
       case GameStates.JOINED:
         return (
