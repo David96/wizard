@@ -200,8 +200,8 @@ export class JoinUI extends React.Component<{error? : string},
             placeholder='Name' />
         </div>
         <form className="joinRoom" onSubmit={this.handleJoin.bind(this)}>
-          <input type='text' onChange={
-                  (event) => this.setState({roomname: event.currentTarget.value})}
+          <input type='text' className='room-code' maxLength={6} onChange={
+                  (event) => this.setState({roomname: event.currentTarget.value.toUpperCase()})}
                   value={this.state.roomname}
                   placeholder='Room Code' />
           <input disabled={!this.state.username || !this.state.roomname}

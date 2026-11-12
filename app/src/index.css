@@ -503,6 +503,11 @@ body, html {
   padding-bottom: 5%;
 }
 
+.room-code {
+  font-family: monospace;
+  text-transform: uppercase;
+}
+
 .turn {
   font-weight: bold;
 }
