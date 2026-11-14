@@ -194,7 +194,7 @@ class Game extends React.Component<{}, GameUIState> {
   }
 
   connect() {
-    const ws = new WebSocket('ws://127.0.0.1:6791');
+    const ws = new WebSocket(process.env.REACT_APP_WSURL || 'ws://127.0.0.1:6791');
     websocket = ws;
     ws.onopen = this.onOpen.bind(this);
     ws.onmessage = this.onMessage.bind(this);
