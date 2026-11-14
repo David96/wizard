@@ -143,8 +143,9 @@ class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
             <div className="scores">
               { this.props.players &&
                   <ScoreBoardUI players={this.props.players} /> }
+              <div className="lobby-buttons">
               { this.props.creator &&
-                  <button  className="center primary" id="start_game"
+                  <button  className="primary" id="start_game"
                       onClick={this.onClick.bind(this)}>
                     {this.props.game_over ? "Restart" : "Start"} game
                   </button> }
@@ -152,10 +153,11 @@ class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
                    BOT_FILL_TARGET) */ }
               { this.props.creator &&
                   this.props.players.filter(player => player.active).length < 4 &&
-                  <button className="center ghost" id="fill_with_bots"
+                  <button id="fill_with_bots"
                       onClick={this.fillWithBots.bind(this)}>
                     Fill with bots
                   </button> }
+              </div>
             </div>
         </div>
       </div>
