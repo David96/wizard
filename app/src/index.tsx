@@ -44,14 +44,38 @@ class GameScreen extends React.Component<GameScreenProps> {
   }
   render() {
     document.title = "Wizard";
-    let curPlayer = this.props.players.find((p) => p.turn)
-    let myTurn = (!this.props.game_state.choosing_trump && curPlayer && curPlayer.name === username)
-              || this.props.game_state.choosing_trump === username;
+    const state = this.props.game_state;
+    const players = this.props.players;
+    let curPlayer = players.find((p) => p.turn)
+    let myTurn = (!state.choosing_trump && curPlayer && curPlayer.name === username)
+              || state.choosing_trump === username;
     if (myTurn) {
         document.title = "Wizard - It's your turn!";
     }
+
+    const activeCount = players.filter((p) => p.active).length;
+    // 4 colors, plus orange from 7 players on; 15 cards per color
+    const colors = players.length > 6 ? 5 : 4;
+    const totalRounds = Math.floor(colors * 15 / Math.max(activeCount, 1));
+
+    let hint : React.ReactNode = 'Waiting…';
+    if (state.choosing_trump) {
+      hint = state.choosing_trump === username
+        ? <span><b>Your turn</b> &mdash; choose a trump color</span>
+        : <span>{state.choosing_trump} is choosing the trump color…</span>;
+    } else if (curPlayer) {
+      hint = curPlayer.name === username
+        ? <span><b>Your turn</b> &mdash; {state.announcing ? 'announce your tricks' : 'play a card'}</span>
+        : <span>{curPlayer.name} is thinking…</span>;
+    }
+
     return [
-        <div className='main'>
+        <div className='topbar' key='topbar'>
+          <span className='chip round'>Round {state.round} / {totalRounds}</span>
+          <span className='turn-hint'>{hint}</span>
+          <span className='chip'>{activeCount} players</span>
+        </div>,
+        <div className='play' key='play'>
           {this.props.waiting_for && this.props.waiting_for.length > 0 &&
               <div className='waiting'>
                 <p id='waiting-list'>{this.props.waiting_for}</p>
@@ -60,16 +84,21 @@ class GameScreen extends React.Component<GameScreenProps> {
                   onClick={() => this.kick(this.props.waiting_for)}>Kick em</button>}
               </div>
           }
-          {this.props.game_state.announcing && myTurn && <AnnounceUI />}
-          {this.props.game_state.choosing_trump === username && <ChooseTrumpUI />}
-          <TableUI trump={this.props.game_state.trump} cards={this.props.game_state.table} />
-          <HandUI cards={this.props.game_state.hand} />
-        </div>,
-        <div className='controls right'>
-          {this.props.room_id &&
-              <div className='room-id'>Room: {this.props.room_id}</div>}
-          <UserListUI round={this.props.game_state.round} players={this.props.players} />
-          <MessageListUI messages={this.props.messages} />
+          {state.announcing && myTurn && !state.choosing_trump &&
+              <AnnounceUI players={players} round={state.round} />}
+          {state.choosing_trump === username && <ChooseTrumpUI />}
+          <div className='table-col'>
+            <div className='table'>
+              <TableUI trump={state.trump} cards={state.table} />
+            </div>
+            <HandUI cards={state.hand} />
+          </div>
+          <div className='controls right'>
+            {this.props.room_id &&
+                <div className='room-id'>Room: {this.props.room_id}</div>}
+            <UserListUI round={state.round} players={players} />
+            <MessageListUI messages={this.props.messages} />
+          </div>
         </div>,
     ];
   }
@@ -106,11 +135,15 @@ class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
           <div className="before"></div>
           <div className="after"></div>
           <h1 className="winner">{winners}</h1>
-          { this.props.players &&
-              <ScoreBoardUI players={this.props.players} /> }
-          { this.props.creator &&
-              <button  className="center" id="start_game"
-                  onClick={this.onClick.bind(this)}>(Re)start game</button> }
+            <div className="scores">
+              { this.props.players &&
+                  <ScoreBoardUI players={this.props.players} /> }
+              { this.props.creator &&
+                  <button  className="center primary" id="start_game"
+                      onClick={this.onClick.bind(this)}>
+                    {this.props.game_over ? "Restart" : "Start"} game
+                  </button> }
+            </div>
         </div>
       </div>
     );

@@ -34,44 +34,50 @@ export interface CardUIProps {
 
 export function CardUI(props : CardUIProps) {
   const card = props.card;
-  let text, color;
+  let text, style, suit;
   switch (card.type) {
     case CardType.WIZARD:
-      text = 'Z';
-      // This might happen if someone choses a trump color, the wizard's color is then used to
-      // indicate that
-      if (card.color) {
-        color = card.color;
-      }
+      text = '✦';
+      suit = 'wizard';
+      // The trump wizard gets a color when someone chose one
+      style = card.color ? card.color : 'wizard';
       break;
     case CardType.FOOL:
-      text = 'N';
+      text = '●';
+      suit = 'fool';
+      style = 'fool';
       break;
     case CardType.NUMBER:
       text = card.number;
-      color = card.color;
+      suit = card.color;
+      style = card.color;
       break;
     default:
       alert('David screwed up lol');
   }
   return (
-    <button className={'card ' + color}
+    <button className={'card ' + style}
             onClick={props.onClick}>
+      <span className='suit'>{suit}</span>
       { text }
-      { card.owner && props.withOwner && <br />}
       { card.owner && props.withOwner && <span className='owner'>{card.owner}</span> }
     </button>
   );
 }
 
 export function TableUI(props : any) {
-  let cards = props.cards.map((card : any) =>
-    <CardUI card={card} withOwner={true} />
-  );
   return (
-    <div id='table'>
-    <div className="trump">{props.trump && <CardUI card={props.trump} />}</div>
-      {cards}
+    <div className='table-area'>
+      <div className='trump-slot'>
+        <div className='label'>Trump</div>
+        {props.trump ? <CardUI card={props.trump} />
+                     : <div className='card card-empty' />}
+      </div>
+      <div className='felt'>
+        {props.cards.map((card : any, i : number) =>
+          <CardUI key={i} card={card} withOwner={true} />
+        )}
+      </div>
     </div>
   );
 }
@@ -81,11 +87,11 @@ export class HandUI extends React.Component<any, any> {
     websocket.send(JSON.stringify({action: 'play_card', ...card}));
   }
   render() {
-    let cards = this.props.cards.map((card : any) =>
-      <CardUI card={card} withOwner={false} onClick={() => this.onClick(card)}/>
+    let cards = this.props.cards.map((card : any, i : number) =>
+      <CardUI key={i} card={card} withOwner={false} onClick={() => this.onClick(card)}/>
     );
     return (
-      <div id='hand'>
+      <div className='hand'>
         {cards}
       </div>
     );
@@ -106,16 +112,16 @@ export function UserListUI(props : any) {
       }
       return <li key={i} className={className}>
                {user.name}{!user.active && " (left)"}
-               {user.announcement > -1 && " (" + user.tricks + " von " + user.announcement + ") "}
-               &nbsp;({user.score})
+               {user.announcement > -1 && " (" + user.tricks + " / " + user.announcement + ") "}
+               <span className='score'>{user.score}</span>
              </li>
     }
   );
   return (
-    <div className="users">
+    <div className="users-block">
       <h3>Users</h3>
-      <ul id="userlist">{players}</ul>
-      <p id="trick-count">{tricks} von {props.round}</p>
+      <ul className="users">{players}</ul>
+      <div className="trickcount">Tricks announced: {tricks} / {props.round}</div>
     </div>
   );
 }
@@ -146,7 +152,7 @@ export function MessageListUI(props : any) {
       key={i}>{message.msg}</li>
   );
   return (
-    <div className="messages">
+    <div className="messages-block">
       <h3>Messages</h3>
       <ul id='messageList' ref={listRef} onScroll={onScroll}>{messages}</ul>
     </div>
@@ -194,10 +200,6 @@ export class JoinUI extends React.Component<{error? : string, disconnected? : bo
     }
     return (
       <div className='join-screen'>
-        <div className='fan'>
-          <div className='c1'></div><div className='c2'></div><div className='c3'></div>
-          <div className='c4'></div><div className='c5'></div>
-        </div>
         <div className='panel'>
           <div className={this.props.disconnected ? 'status reconnecting' : 'status'}>
             {status}
@@ -246,7 +248,8 @@ export class ChooseTrumpUI extends React.Component<{}, {value: string}> {
 
   render() {
     return (
-        <form className='choose_trump' onSubmit={this.handleChoose.bind(this)}>
+        <form className='panel choose_trump' onSubmit={this.handleChoose.bind(this)}>
+          <h3>Choose the trump color</h3>
           <select id='color' name='color' value={this.state.value}
                 onChange={this.handleChange.bind(this)}>
             <option value='red'>Red</option>
@@ -254,31 +257,85 @@ export class ChooseTrumpUI extends React.Component<{}, {value: string}> {
             <option value='green'>Green</option>
             <option value='blue'>Blue</option>
           </select>
-          <input type='submit' value='Choose' />
+          <button className='primary' type='submit'>Choose</button>
         </form>
     );
   }
 }
 
-export class AnnounceUI extends React.Component<{}, {value: string}> {
-  state = {value: ''};
+export class AnnounceUI extends React.Component<{players : any[], round : number},
+                                               {value: string}> {
+  state = {value: '0'};
+  numInput = React.createRef<HTMLInputElement>();
 
-  handleAnnounce(event : FormEvent) {
-    event.preventDefault();
-    websocket.send(JSON.stringify({action: 'announce', announcement: parseInt(this.state.value)}));
+  announcement() : number {
+    return parseInt(this.state.value, 10);
+  }
+
+  invalidReason() : string {
+    const value = this.announcement();
+    if (this.state.value.trim() === '' || isNaN(value)) {
+      return 'Enter a number';
+    }
+    if (value < 0) {
+      return 'Must be 0 or more';
+    }
+    if (value > this.props.round) {
+      return 'At most ' + this.props.round;
+    }
+    const others = this.props.players.filter((p : any) =>
+      p.active && p.name !== username);
+    const pending = others.filter((p : any) => p.announcement < 0);
+    if (pending.length === 0) {
+      // We are the last to announce: the total must not equal the round
+      const sum = others.reduce((s : number, p : any) => s + p.announcement, 0);
+      if (sum + value === this.props.round) {
+        return 'Total would be ' + this.props.round + ' \u2014 not allowed';
+      }
+    }
+    return '';
+  }
+
+  step(delta : number) {
+    let value = this.announcement();
+    if (isNaN(value)) {
+      value = 0;
+    }
+    value = Math.max(0, Math.min(this.props.round, value + delta));
+    this.setState({value: String(value)}, () => this.numInput.current?.select());
   }
 
   handleChange(event : FormEvent<HTMLInputElement>) {
-    this.setState({value: event.currentTarget.value});
+    this.setState({value: event.currentTarget.value.replace(/[^0-9]/g, '')});
+  }
+
+  handleAnnounce(event : FormEvent) {
+    event.preventDefault();
+    if (this.invalidReason()) {
+      return;
+    }
+    websocket.send(JSON.stringify({action: 'announce',
+                                   announcement: this.announcement()}));
   }
 
   render() {
+    const reason = this.invalidReason();
     return (
-      <form className='announce' onSubmit={this.handleAnnounce.bind(this)}>
-        <input type='text' onChange={this.handleChange.bind(this)}
-                         value={this.state.value}
-                         placeholder='Announcement' />
-        <input type='submit' value='Go' />
+      <form className='panel announce' onSubmit={this.handleAnnounce.bind(this)}>
+        <h3>Announce your tricks</h3>
+        <div className='inputstep'>
+          <button type='button' className='roundbtn'
+                  onClick={() => this.step(-1)}>&minus;</button>
+          <input className='numfield' type='text' inputMode='numeric'
+                 ref={this.numInput} value={this.state.value}
+                 onChange={this.handleChange.bind(this)} />
+          <button type='button' className='roundbtn'
+                  onClick={() => this.step(1)}>+</button>
+        </div>
+        <div className={'hint' + (reason ? ' bad' : '')}>
+          {reason || 'Round ' + this.props.round + ' \u2014 how many tricks will you win?'}
+        </div>
+        <button className='primary' type='submit' disabled={!!reason}>Announce</button>
       </form>
     );
   }
