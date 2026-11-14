@@ -117,6 +117,11 @@ class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
     websocket.send(JSON.stringify({action: 'start_game'}));
   }
 
+  fillWithBots(event : FormEvent) {
+    event.preventDefault();
+    websocket.send(JSON.stringify({action: 'fill_with_bots'}));
+  }
+
   render() {
     let winners = "";
     if (this.props.game_over) {
@@ -142,6 +147,14 @@ class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
                   <button  className="center primary" id="start_game"
                       onClick={this.onClick.bind(this)}>
                     {this.props.game_over ? "Restart" : "Start"} game
+                  </button> }
+              { /* 4 = the player count the AI was trained for (wizard.py
+                   BOT_FILL_TARGET) */ }
+              { this.props.creator &&
+                  this.props.players.filter(player => player.active).length < 4 &&
+                  <button className="center ghost" id="fill_with_bots"
+                      onClick={this.fillWithBots.bind(this)}>
+                    Fill with bots
                   </button> }
             </div>
         </div>
