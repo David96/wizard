@@ -341,11 +341,11 @@ export class AnnounceUI extends React.Component<{players : any[], round : number
   }
 }
 
-export function ScoreBoardUI(props : {players: {score: number, name: string}[]}) {
+export function ScoreBoardUI(props : {players: {active: boolean, score: number, name: string}[]}) {
   props.players.sort((a, b) => b.score - a.score);
   let place = 1;
   const table_entries = props.players.map((player) => {
-    return <tr><td>{place++}</td><td>{player.name}</td><td>{player.score}</td></tr>
+    return <tr className={player.active ? "active" : "inactive"}><td>{place++}</td><td>{player.name}</td><td>{player.score}</td></tr>
   });
   return (
     <table className="score-board">

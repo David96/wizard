@@ -469,6 +469,9 @@ button.ghost:disabled {
   padding: 2px 10px;
   text-align: center;
 }
+.scores .score-board .inactive {
+  color: #ddd;
+}
 
 .pyro-container {
   position: fixed;
