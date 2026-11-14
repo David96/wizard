@@ -78,7 +78,7 @@ class GameScreen extends React.Component<GameScreenProps> {
         <div className='play' key='play'>
           {this.props.waiting_for && this.props.waiting_for.length > 0 &&
               <div className='waiting'>
-                <p id='waiting-list'>{this.props.waiting_for}</p>
+                <p id='waiting-list'>{this.props.waiting_for.join(', ')}</p>
               {this.props.creator &&
                   <button className="center" id="kick"
                   onClick={() => this.kick(this.props.waiting_for)}>Kick em</button>}
@@ -283,12 +283,12 @@ class Game extends React.Component<{}, GameUIState> {
       case 'joined':
         // Remember the room we are in so a reconnect can rejoin it
         roomname = data.room_id;
-        this.setState({
-          messages: this.state.messages.concat([{msg_type: MessageType.MESSAGE,
-                                                msg: 'You joined the game!'}]),
+        this.setState(prev => ({
+          messages: prev.messages.concat([{msg_type: MessageType.MESSAGE,
+                                          msg: 'You joined the game!'}]),
           state: GameStates.JOINED,
           room_id: data.room_id
-        });
+        }));
         break;
       case 'state':
         this.setState({
@@ -303,16 +303,16 @@ class Game extends React.Component<{}, GameUIState> {
         this.setState({creator: data.status === 'creator'});
         break;
       case 'message':
-        this.setState({messages: this.state.messages.concat(
-          [{msg_type: MessageType.MESSAGE, msg: data.msg}])});
+        this.setState(prev => ({messages: prev.messages.concat(
+          [{msg_type: MessageType.MESSAGE, msg: data.msg}])}));
         break;
       case 'error':
         if (this.state.state === GameStates.NONE) {
           // There is no message list on the join screen: show it inline
           this.setState({join_error: data.msg});
         } else {
-          this.setState({messages: this.state.messages.concat(
-            [{msg_type: MessageType.ERROR, msg: data.msg}])});
+          this.setState(prev => ({messages: prev.messages.concat(
+            [{msg_type: MessageType.ERROR, msg: data.msg}])}));
         }
         break;
       case 'management':
