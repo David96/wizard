@@ -23,6 +23,10 @@ class Player:
 
 class Wizard:
 
+    # The AI is only trained for 4-player games: this is the player count
+    # the room framework's fill_with_bots action fills rooms up to
+    BOT_FILL_TARGET = 4
+
     def __init__(self, room):
         self.ACTIONS = {
             'play_card': self.play_card,
