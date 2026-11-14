@@ -59,7 +59,10 @@ class Wizard:
 
     async def add_player(self, name):
         if not self.room.started or self.game_over:
-            self.players[name] = Player(name)
+            if name in self.players:
+                self.players[name].active = True
+            else:
+                self.players[name] = Player(name)
             if len(self.players) == 7:
                 self.colors.append('orange')
         else:
@@ -69,7 +72,7 @@ class Wizard:
 
     def remove_player(self, name):
         player = self.players[name]
-        if self.room.started and not self.game_over:
+        if self.room.started:
             # While the game is running, keep kicked players around as ghosts:
             # cards they played stay owned by them and their score can still be
             # shown at the end. They never act or receive cards again.
@@ -122,7 +125,9 @@ class Wizard:
     # Actions
     def start_game(self):
         # Ghosts of previous games don't get a second life
-        self.players = {name: p for name, p in self.players.items() if p.active}
+        self.players = {name: p for name, p in self.players.items()
+                        if p.active and not name in self.room.waiting_for}
+        self.room.waiting_for.clear()
         self.reset()
         self.new_round()
         self.players_dirty = self.state_dirty = True
