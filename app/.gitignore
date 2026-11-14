@@ -10,6 +10,7 @@
 
 # production
 /build
+/dist
 index.css
 index.css.map
 

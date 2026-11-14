@@ -21,7 +21,7 @@ export interface Message {
 
 export interface Card {
   type : CardType;
-  number : Number;
+  number : number;
   color : string;
   owner : string;
 }

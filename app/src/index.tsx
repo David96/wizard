@@ -2,7 +2,7 @@ import React, {FormEvent} from 'react';
 import { createRoot } from 'react-dom/client';
 import {username, Message, MessageType, Card, AnnounceUI, HandUI, TableUI,
   UserListUI, MessageListUI, ScoreBoardUI, JoinUI, ChooseTrumpUI} from './UIElements'
-import './index.css';
+import './index.scss';
 
 export let websocket : WebSocket;
 let roomname : string;
@@ -209,7 +209,7 @@ class Game extends React.Component<{}, GameUIState> {
   }
 
   connect() {
-    const ws = new WebSocket(process.env.REACT_APP_WSURL || 'ws://127.0.0.1:6791');
+    const ws = new WebSocket(import.meta.env.VITE_WSURL || 'ws://127.0.0.1:6791');
     websocket = ws;
     ws.onopen = this.onOpen.bind(this);
     ws.onmessage = this.onMessage.bind(this);

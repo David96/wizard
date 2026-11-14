@@ -1,44 +1,22 @@
 {
   "name": "app",
-  "homepage": "/wizard",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@types/node": "*",
     "@types/react": "*",
     "@types/react-dom": "*",
-    "npm-run-all": "*",
     "react": "*",
     "react-dom": "*",
-    "react-scripts": "*",
     "typescript": "*"
   },
+  "devDependencies": {
+    "@vitejs/plugin-react": "*",
+    "sass-embedded": "*",
+    "vite": "*"
+  },
   "scripts": {
-    "build:css": "sass --no-source-map --style=compressed src/:src/",
-    "watch:css": "sass --watch src/:src/",
-    "start:js": "react-scripts start",
-    "build:js": "react-scripts build",
-    "start": "npm-run-all -p watch:css start:js",
-    "build": "npm-run-all build:*",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "start": "vite",
+    "build": "tsc --noEmit && vite build"
   }
 }
