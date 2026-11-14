@@ -220,17 +220,19 @@ button {
     display: flex;
     align-items: center;
     align-self: flex-start;
-    margin-top: 2em;
+    margin: 2em;
+    width: 100%;
     gap: 2em;
 }
 
 .felt {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: left;
     flex-wrap: wrap;
     gap: 2.5em;
     padding: 2.5em 4em 3.2em;
+    width: 100%;
     min-height: calc(var(--cw) * 2.5);
     background-color: #fbfaf9;
     border: 1px solid rgba(0,0,0,0.06);
@@ -357,6 +359,7 @@ button {
     text-align: center;
     width: max-content;
     max-width: min(400px, 92%);
+    z-index: 10;
 
     h3 {
         font-size: 0.85em;
@@ -589,6 +592,7 @@ button {
     height: 100vh;
     box-sizing: border-box;
     background-color: rgba(0,0,0, 0.8);
+    z-index: 100;
 
     p {
         color: white;
@@ -671,7 +675,7 @@ button {
 
 /* phones portrait: panel under the table, hand above side panel, cards smaller */
 @media (max-width: 700px) {
-    :root { --cw: 64px; }
+    :root { --cw: 84px; }
 
     body { overflow: auto; }
 
@@ -733,8 +737,8 @@ button {
 }
 
 /* phones landscape: tighten everything */
-@media (orientation: landscape) and (max-height: 560px) {
-    :root { --cw: 54px; }
+@media (orientation: landscape) and (max-height: 710px) {
+    :root { --cw: 86px; }
 
     .topbar { padding: 0.35em 0.9em; }
     .topbar .turn-hint { font-size: 0.78em; }
