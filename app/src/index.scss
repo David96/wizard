@@ -1,4 +1,4 @@
-@import 'fireworks';
+@use 'fireworks' as *;
 
 @keyframes slide-in {
     0% { top: -100% }
