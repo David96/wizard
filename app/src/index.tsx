@@ -112,6 +112,14 @@ interface WaitingRoomScreenProps {
   room_id? : string;
 }
 class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
+  state = { filling: false };
+  fill_timer? : number;
+
+  componentWillUnmount() {
+    if (this.fill_timer !== undefined)
+      window.clearTimeout(this.fill_timer);
+  }
+
   onClick(event : FormEvent) {
     event.preventDefault();
     websocket.send(JSON.stringify({action: 'start_game'}));
@@ -119,7 +127,12 @@ class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
 
   fillWithBots(event : FormEvent) {
     event.preventDefault();
+    this.setState({filling: true});
     websocket.send(JSON.stringify({action: 'fill_with_bots'}));
+    // If no bot ever makes it in, the server gives up on them after
+    // BOT_JOIN_TIMEOUT (20s): unlock the button again a bit after that
+    this.fill_timer = window.setTimeout(
+        () => this.setState({filling: false}), 25000);
   }
 
   render() {
@@ -153,9 +166,10 @@ class WaitingRoomScreen extends React.Component<WaitingRoomScreenProps> {
                    BOT_FILL_TARGET) */ }
               { this.props.creator &&
                   this.props.players.filter(player => player.active).length < 4 &&
-                  <button id="fill_with_bots"
+                  <button id="fill_with_bots" disabled={this.state.filling}
                       onClick={this.fillWithBots.bind(this)}>
-                    Fill with bots
+                    { this.state.filling && <span className="spinner"></span> }
+                    { this.state.filling ? "Filling…" : "Fill with bots" }
                   </button> }
               </div>
             </div>

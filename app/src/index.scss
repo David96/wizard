@@ -126,6 +126,25 @@ button {
     flex-wrap: wrap;
     gap: 1em;
     margin-top: 1em;
+
+    button:disabled {
+        cursor: progress;
+        color: white;
+    }
+    .spinner {
+        display: inline-block;
+        width: 0.85em;
+        height: 0.85em;
+        vertical-align: -0.1em;
+        margin-right: 0.5em;
+        border: 0.14em solid white;
+        border-top-color: gray;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .scores {
